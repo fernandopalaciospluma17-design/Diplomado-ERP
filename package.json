@@ -1,0 +1,17 @@
+{
+  "name": "erp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ERP multiplataforma con React Native Web y API REST.",
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend start",
+    "build": "npm run build:backend",
+    "build:backend": "npm --prefix backend run build",
+    "test": "npm --prefix backend test",
+    "typecheck": "npm --prefix backend run typecheck"
+  },
+  "dependencies": {
+    "mongodb": "^7.6.0"
+  }
+}

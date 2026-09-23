@@ -21,23 +21,23 @@ function toCatalogResponse(item: { _id: { toString(): string }; kind: CatalogKin
   };
 }
 
-export async function listCatalog(kind: CatalogKind) {
-  const items = await CatalogModel.find({ kind }).sort({ name: 1 });
+export async function listCatalog(kind: CatalogKind, companyId: string, branchId: string) {
+  const items = await CatalogModel.find({ companyId, branchId, kind }).sort({ name: 1 });
   return items.map(toCatalogResponse);
 }
 
-export async function createCatalog(kind: CatalogKind, input: CreateCatalogInput) {
-  const existing = await CatalogModel.exists({ kind, code: input.code });
+export async function createCatalog(kind: CatalogKind, input: CreateCatalogInput, companyId: string, branchId: string) {
+  const existing = await CatalogModel.exists({ companyId, kind, code: input.code });
   if (existing) {
     throw new CatalogError('CATALOG_EXISTS');
   }
 
-  const item = await CatalogModel.create({ kind, ...input });
+  const item = await CatalogModel.create({ companyId, branchId, kind, ...input });
   return toCatalogResponse(item);
 }
 
-export async function updateCatalog(kind: CatalogKind, code: string, input: UpdateCatalogInput) {
-  const item = await CatalogModel.findOneAndUpdate({ kind, code: code.toUpperCase() }, input, { new: true, runValidators: true });
+export async function updateCatalog(kind: CatalogKind, code: string, input: UpdateCatalogInput, companyId: string, branchId: string) {
+  const item = await CatalogModel.findOneAndUpdate({ companyId, branchId, kind, code: code.toUpperCase() }, input, { new: true, runValidators: true });
   if (!item) {
     throw new CatalogError('CATALOG_NOT_FOUND');
   }

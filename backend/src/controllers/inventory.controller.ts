@@ -5,9 +5,10 @@ import { inventoryMovementSchema } from '../validators/inventory.validators.js';
 
 export const getInventoryController: RequestHandler = async (request, response, next) => {
   try {
+    if (!request.user?.companyId || !request.user.branchId) { response.status(403).json({ success: false, message: 'Usuario sin empresa o sucursal asignada', error: { code: 'TENANT_REQUIRED', details: [] } }); return; }
     const productCode = String(request.params.productCode).toUpperCase();
     const warehouseCode = String(request.params.warehouseCode).toUpperCase();
-    const data = await getInventory(productCode, warehouseCode);
+    const data = await getInventory(productCode, warehouseCode, request.user.companyId, request.user.branchId);
     response.status(200).json({ success: true, message: 'Inventario consultado', data });
   } catch (error) {
     next(error);
@@ -16,9 +17,10 @@ export const getInventoryController: RequestHandler = async (request, response, 
 
 export const listInventoryMovementsController: RequestHandler = async (request, response, next) => {
   try {
+    if (!request.user?.companyId || !request.user.branchId) { response.status(403).json({ success: false, message: 'Usuario sin empresa o sucursal asignada', error: { code: 'TENANT_REQUIRED', details: [] } }); return; }
     const productCode = String(request.params.productCode).toUpperCase();
     const warehouseCode = String(request.params.warehouseCode).toUpperCase();
-    const data = await listInventoryMovements(productCode, warehouseCode);
+    const data = await listInventoryMovements(productCode, warehouseCode, request.user.companyId, request.user.branchId);
     response.status(200).json({ success: true, message: 'Movimientos consultados', data });
   } catch (error) {
     next(error);
@@ -27,8 +29,9 @@ export const listInventoryMovementsController: RequestHandler = async (request, 
 
 export const applyInventoryMovementController: RequestHandler = async (request, response, next) => {
   try {
+    if (!request.user?.companyId || !request.user.branchId) { response.status(403).json({ success: false, message: 'Usuario sin empresa o sucursal asignada', error: { code: 'TENANT_REQUIRED', details: [] } }); return; }
     const input = inventoryMovementSchema.parse(request.body);
-    const data = await applyInventoryMovement(input, request.user!.sub);
+    const data = await applyInventoryMovement(input, request.user.sub, request.user.companyId, request.user.branchId);
     response.status(201).json({ success: true, message: 'Movimiento aplicado', data });
   } catch (error) {
     if (error instanceof ZodError) {

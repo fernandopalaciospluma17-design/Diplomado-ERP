@@ -4,6 +4,9 @@ import { env } from '../config/env.js';
 export interface AccessTokenPayload {
   sub: string;
   roleId?: string;
+  sid?: string;
+  companyId?: string;
+  branchId?: string;
 }
 
 export function signAccessToken(payload: AccessTokenPayload): string {

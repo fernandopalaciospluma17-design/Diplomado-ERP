@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "ERP",
+    "slug": "erp",
+    "version": "0.1.0",
+    "orientation": "default",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "web": { "bundler": "metro" },
+    "android": { "package": "com.example.erp" }
+  }
+}

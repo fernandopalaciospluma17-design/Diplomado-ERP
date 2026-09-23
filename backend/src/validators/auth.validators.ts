@@ -11,7 +11,7 @@ export const createUserSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().email().transform((value) => value.toLowerCase()),
   password: z.string().min(8).max(128),
-  roleId: z.string().trim().min(1).max(80),
+  roleId: z.string().regex(/^[a-f\d]{24}$/i),
   status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE')
 });
 

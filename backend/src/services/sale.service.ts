@@ -9,37 +9,37 @@ export class SaleError extends Error {
   }
 }
 
-export async function listSales() {
-  return SaleModel.find().sort({ createdAt: -1 }).limit(100);
+export async function listSales(companyId: string, branchId: string) {
+  return SaleModel.find({ companyId, branchId }).sort({ createdAt: -1 }).limit(100);
 }
 
-export async function createSale(input: CreateSaleInput, createdBy: string) {
-  const existing = await SaleModel.exists({ saleNumber: input.saleNumber });
+export async function createSale(input: CreateSaleInput, createdBy: string, companyId: string, branchId: string) {
+  const existing = await SaleModel.exists({ companyId, saleNumber: input.saleNumber });
   if (existing) {
     throw new SaleError('SALE_EXISTS');
   }
 
   const lines = input.lines.map((line) => ({ ...line, lineTotalCents: line.quantity * line.unitPriceCents }));
   const subtotalCents = lines.reduce((total, line) => total + line.lineTotalCents, 0);
-  const sale = await SaleModel.create({ ...input, lines, subtotalCents, totalCents: subtotalCents, createdBy });
+  const sale = await SaleModel.create({ ...input, companyId, branchId, lines, subtotalCents, totalCents: subtotalCents, createdBy });
   return sale;
 }
 
-export async function listPayments(saleNumber: string) {
-  return PaymentModel.find({ saleNumber }).sort({ createdAt: -1 });
+export async function listPayments(saleNumber: string, companyId: string, branchId: string) {
+  return PaymentModel.find({ saleNumber, companyId, branchId }).sort({ createdAt: -1 });
 }
 
-export async function createPayment(saleNumber: string, input: CreatePaymentInput, receivedBy: string) {
-  const sale = await SaleModel.findOne({ saleNumber });
+export async function createPayment(saleNumber: string, input: CreatePaymentInput, receivedBy: string, companyId: string, branchId: string) {
+  const sale = await SaleModel.findOne({ saleNumber, companyId, branchId });
   if (!sale || sale.status === 'CANCELLED') {
     throw new SaleError('SALE_NOT_FOUND');
   }
 
-  const payments = await PaymentModel.find({ saleNumber }).select('amountCents');
+  const payments = await PaymentModel.find({ saleNumber, companyId, branchId }).select('amountCents');
   const paidCents = payments.reduce((total, payment) => total + payment.amountCents, 0);
   if (paidCents + input.amountCents > sale.totalCents) {
     throw new SaleError('PAYMENT_EXCEEDS_TOTAL');
   }
 
-  return PaymentModel.create({ saleNumber, ...input, receivedBy });
+  return PaymentModel.create({ saleNumber, companyId, branchId, ...input, receivedBy });
 }

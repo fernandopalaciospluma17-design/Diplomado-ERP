@@ -7,19 +7,19 @@ export class InventoryError extends Error {
   }
 }
 
-export async function getInventory(productCode: string, warehouseCode: string) {
-  const balance = await InventoryBalanceModel.findOne({ productCode, warehouseCode });
+export async function getInventory(productCode: string, warehouseCode: string, companyId: string, branchId: string) {
+  const balance = await InventoryBalanceModel.findOne({ companyId, branchId, productCode, warehouseCode });
   return balance ? { productCode: balance.productCode, warehouseCode: balance.warehouseCode, quantity: balance.quantity } : { productCode, warehouseCode, quantity: 0 };
 }
 
-export async function listInventoryMovements(productCode: string, warehouseCode: string) {
-  return InventoryMovementModel.find({ productCode, warehouseCode }).sort({ createdAt: -1 }).limit(100);
+export async function listInventoryMovements(productCode: string, warehouseCode: string, companyId: string, branchId: string) {
+  return InventoryMovementModel.find({ companyId, branchId, productCode, warehouseCode }).sort({ createdAt: -1 }).limit(100);
 }
 
-export async function applyInventoryMovement(input: InventoryMovementInput, createdBy: string) {
+export async function applyInventoryMovement(input: InventoryMovementInput, createdBy: string, companyId: string, branchId: string) {
   const productCode = input.productCode;
   const warehouseCode = input.warehouseCode;
-  const current = await InventoryBalanceModel.findOne({ productCode, warehouseCode });
+  const current = await InventoryBalanceModel.findOne({ companyId, branchId, productCode, warehouseCode });
   const previousQuantity = current?.quantity ?? 0;
   const resultingQuantity = input.type === 'IN'
     ? previousQuantity + input.quantity
@@ -33,9 +33,9 @@ export async function applyInventoryMovement(input: InventoryMovementInput, crea
 
   const balance = await InventoryBalanceModel.findOneAndUpdate(
     input.type === 'OUT'
-      ? { productCode, warehouseCode, quantity: { $gte: input.quantity } }
-      : { productCode, warehouseCode },
-    { $set: { quantity: resultingQuantity }, $setOnInsert: { productCode, warehouseCode } },
+      ? { companyId, branchId, productCode, warehouseCode, quantity: { $gte: input.quantity } }
+      : { companyId, branchId, productCode, warehouseCode },
+    { $set: { quantity: resultingQuantity }, $setOnInsert: { companyId, branchId, productCode, warehouseCode } },
     { new: true, upsert: true, runValidators: true }
   );
 
@@ -45,6 +45,8 @@ export async function applyInventoryMovement(input: InventoryMovementInput, crea
 
   const movement = await InventoryMovementModel.create({
     ...input,
+    companyId,
+    branchId,
     previousQuantity,
     resultingQuantity,
     createdBy

@@ -7,17 +7,17 @@ export class PurchaseError extends Error {
   }
 }
 
-export async function listPurchases() {
-  return PurchaseModel.find().sort({ createdAt: -1 }).limit(100);
+export async function listPurchases(companyId: string, branchId: string) {
+  return PurchaseModel.find({ companyId, branchId }).sort({ createdAt: -1 }).limit(100);
 }
 
-export async function createPurchase(input: CreatePurchaseInput, createdBy: string) {
-  const existing = await PurchaseModel.exists({ purchaseNumber: input.purchaseNumber });
+export async function createPurchase(input: CreatePurchaseInput, createdBy: string, companyId: string, branchId: string) {
+  const existing = await PurchaseModel.exists({ companyId, purchaseNumber: input.purchaseNumber });
   if (existing) {
     throw new PurchaseError('PURCHASE_EXISTS');
   }
 
   const lines = input.lines.map((line) => ({ ...line, lineTotalCents: line.quantity * line.unitCostCents }));
   const subtotalCents = lines.reduce((total, line) => total + line.lineTotalCents, 0);
-  return PurchaseModel.create({ ...input, lines, subtotalCents, totalCents: subtotalCents, createdBy });
+  return PurchaseModel.create({ ...input, companyId, branchId, lines, subtotalCents, totalCents: subtotalCents, createdBy });
 }

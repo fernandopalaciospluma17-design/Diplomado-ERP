@@ -7,8 +7,12 @@ const envSchema = z.object({
   MONGODB_URI: z.string().min(1).default('mongodb://127.0.0.1:27017/erp'),
   CORS_ORIGIN: z.string().min(1).default('http://localhost:8081'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
-  JWT_SECRET: z.string().min(32).default('development-only-secret-change-me-123456'),
+  JWT_SECRET: z.string().min(32).optional(),
   JWT_EXPIRES_IN: z.string().min(1).default('15m')
-});
+}).superRefine((value, context) => {
+  if (value.NODE_ENV === 'production' && !value.JWT_SECRET) {
+    context.addIssue({ code: 'custom', path: ['JWT_SECRET'], message: 'JWT_SECRET es obligatorio en producción' });
+  }
+}).transform((value) => ({ ...value, JWT_SECRET: value.JWT_SECRET ?? 'development-only-secret-change-me-123456' }));
 
 export const env = envSchema.parse(process.env);

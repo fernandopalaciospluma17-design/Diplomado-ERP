@@ -3,9 +3,10 @@ import { ZodError } from 'zod';
 import { SaleError, createSale, listSales } from '../services/sale.service.js';
 import { createSaleSchema } from '../validators/sale.validators.js';
 
-export const listSalesController: RequestHandler = async (_request, response, next) => {
+export const listSalesController: RequestHandler = async (request, response, next) => {
   try {
-    const data = await listSales();
+    if (!request.user?.companyId || !request.user.branchId) { response.status(403).json({ success: false, message: 'Usuario sin empresa o sucursal asignada', error: { code: 'TENANT_REQUIRED', details: [] } }); return; }
+    const data = await listSales(request.user.companyId, request.user.branchId);
     response.status(200).json({ success: true, message: 'Ventas consultadas', data });
   } catch (error) {
     next(error);
@@ -14,8 +15,9 @@ export const listSalesController: RequestHandler = async (_request, response, ne
 
 export const createSaleController: RequestHandler = async (request, response, next) => {
   try {
+    if (!request.user?.companyId || !request.user.branchId) { response.status(403).json({ success: false, message: 'Usuario sin empresa o sucursal asignada', error: { code: 'TENANT_REQUIRED', details: [] } }); return; }
     const input = createSaleSchema.parse(request.body);
-    const data = await createSale(input, request.user!.sub);
+    const data = await createSale(input, request.user.sub, request.user.companyId, request.user.branchId);
     response.status(201).json({ success: true, message: 'Venta creada', data });
   } catch (error) {
     if (error instanceof ZodError) {

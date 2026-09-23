@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 
 export type SaleStatus = 'COMPLETED' | 'CANCELLED';
 
@@ -10,6 +10,8 @@ export interface SaleLine {
 }
 
 export interface SaleDocument {
+  companyId: Types.ObjectId;
+  branchId: Types.ObjectId;
   saleNumber: string;
   customerCode?: string;
   warehouseCode: string;
@@ -34,6 +36,8 @@ const saleLineSchema = new Schema<SaleLine>(
 
 const saleSchema = new Schema<SaleDocument>(
   {
+    companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
+    branchId: { type: Schema.Types.ObjectId, ref: 'Branch', required: true },
     saleNumber: { type: String, required: true, trim: true, uppercase: true },
     customerCode: { type: String, trim: true, uppercase: true },
     warehouseCode: { type: String, required: true, trim: true, uppercase: true },
@@ -46,7 +50,7 @@ const saleSchema = new Schema<SaleDocument>(
   { timestamps: true }
 );
 
-saleSchema.index({ saleNumber: 1 }, { unique: true });
-saleSchema.index({ createdAt: -1, status: 1 });
+saleSchema.index({ companyId: 1, saleNumber: 1 }, { unique: true });
+saleSchema.index({ companyId: 1, branchId: 1, createdAt: -1, status: 1 });
 
 export const SaleModel = model<SaleDocument>('Sale', saleSchema);

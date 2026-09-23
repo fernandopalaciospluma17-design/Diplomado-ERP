@@ -1,4 +1,5 @@
 import cors from 'cors';
+import { randomUUID } from 'node:crypto';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
@@ -13,6 +14,7 @@ import { saleRouter } from './routes/sale.routes.js';
 import { purchaseRouter } from './routes/purchase.routes.js';
 import { expenseRouter } from './routes/expense.routes.js';
 import { reportRouter } from './routes/report.routes.js';
+import { coreRouter } from './routes/core.routes.js';
 import { logger } from './utils/logger.js';
 
 export const app = express();
@@ -21,6 +23,13 @@ app.disable('x-powered-by');
 app.use(helmet());
 app.use(cors({ origin: env.CORS_ORIGIN }));
 app.use(express.json({ limit: '1mb' }));
+app.use((request, response, next) => {
+  const suppliedId = request.header('x-request-id');
+  const requestId = suppliedId && /^[a-zA-Z0-9._-]{1,64}$/.test(suppliedId) ? suppliedId : randomUUID();
+  request.requestId = requestId;
+  response.setHeader('x-request-id', requestId);
+  next();
+});
 app.use(pinoHttp({ logger }));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300 }));
 
@@ -30,6 +39,7 @@ app.get('/', (_request, response) => {
 
 app.use('/api/v1/health', healthRouter);
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/core', coreRouter);
 app.use('/api/v1/catalogs', catalogRouter);
 app.use('/api/v1/inventory', inventoryRouter);
 app.use('/api/v1/sales', saleRouter);

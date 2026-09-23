@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.expo/
+.expo-shared/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+android/.gradle/
+android/local.properties
+ios/Pods/
+ios/build/
+.DS_Store

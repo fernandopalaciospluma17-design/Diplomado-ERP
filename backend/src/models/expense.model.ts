@@ -1,6 +1,8 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 
 export interface ExpenseDocument {
+  companyId: Types.ObjectId;
+  branchId: Types.ObjectId;
   expenseNumber: string;
   categoryCode: string;
   description: string;
@@ -12,6 +14,8 @@ export interface ExpenseDocument {
 }
 
 const expenseSchema = new Schema<ExpenseDocument>({
+  companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
+  branchId: { type: Schema.Types.ObjectId, ref: 'Branch', required: true },
   expenseNumber: { type: String, required: true, trim: true, uppercase: true },
   categoryCode: { type: String, required: true, trim: true, uppercase: true },
   description: { type: String, required: true, trim: true, maxlength: 240 },
@@ -20,7 +24,7 @@ const expenseSchema = new Schema<ExpenseDocument>({
   createdBy: { type: String, required: true }
 }, { timestamps: true });
 
-expenseSchema.index({ expenseNumber: 1 }, { unique: true });
-expenseSchema.index({ paidAt: -1, categoryCode: 1 });
+expenseSchema.index({ companyId: 1, expenseNumber: 1 }, { unique: true });
+expenseSchema.index({ companyId: 1, branchId: 1, paidAt: -1, categoryCode: 1 });
 
 export const ExpenseModel = model<ExpenseDocument>('Expense', expenseSchema);

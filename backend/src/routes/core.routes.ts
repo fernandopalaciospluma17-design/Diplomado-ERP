@@ -1,0 +1,21 @@
+import { Router } from 'express';
+import { createBranchController, createRoleController, listAuditController, listBranchesController, listCompaniesController, listConfigurationController, listPermissionsController, listRolesController, listSessionsController, revokeSessionsController, setConfigurationController, updateBranchController, updateCompanyController, updateRoleController } from '../controllers/core.controller.js';
+import { requireAuth, requirePermission } from '../middlewares/auth.js';
+import { auditAction } from '../middlewares/audit.js';
+
+export const coreRouter = Router();
+coreRouter.use(requireAuth);
+coreRouter.get('/companies', requirePermission('platform.companies.read'), listCompaniesController);
+coreRouter.patch('/companies/:companyId', requirePermission('platform.companies.update'), auditAction('COMPANY_UPDATE'), updateCompanyController);
+coreRouter.get('/companies/:companyId/branches', requirePermission('platform.branches.read'), listBranchesController);
+coreRouter.post('/companies/:companyId/branches', requirePermission('platform.branches.create'), auditAction('BRANCH_CREATE'), createBranchController);
+coreRouter.patch('/companies/:companyId/branches/:branchId', requirePermission('platform.branches.update'), auditAction('BRANCH_UPDATE'), updateBranchController);
+coreRouter.get('/permissions', requirePermission('platform.permissions.read'), listPermissionsController);
+coreRouter.get('/roles', requirePermission('platform.roles.read'), listRolesController);
+coreRouter.post('/roles', requirePermission('platform.roles.create'), auditAction('ROLE_CREATE'), createRoleController);
+coreRouter.patch('/roles/:roleId', requirePermission('platform.roles.update'), auditAction('ROLE_UPDATE'), updateRoleController);
+coreRouter.get('/configuration', requirePermission('platform.configuration.read'), listConfigurationController);
+coreRouter.put('/configuration/:key', requirePermission('platform.configuration.update'), auditAction('CONFIGURATION_UPDATE'), setConfigurationController);
+coreRouter.get('/sessions', listSessionsController);
+coreRouter.delete('/sessions', auditAction('SESSION_REVOKE'), revokeSessionsController);
+coreRouter.get('/audit', requirePermission('platform.audit.read'), listAuditController);

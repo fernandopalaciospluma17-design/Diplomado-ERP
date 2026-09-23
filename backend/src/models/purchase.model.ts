@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 
 export type PurchaseStatus = 'RECEIVED' | 'CANCELLED';
 
@@ -10,6 +10,8 @@ export interface PurchaseLine {
 }
 
 export interface PurchaseDocument {
+  companyId: Types.ObjectId;
+  branchId: Types.ObjectId;
   purchaseNumber: string;
   supplierCode?: string;
   warehouseCode: string;
@@ -34,6 +36,8 @@ const purchaseLineSchema = new Schema<PurchaseLine>(
 
 const purchaseSchema = new Schema<PurchaseDocument>(
   {
+    companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
+    branchId: { type: Schema.Types.ObjectId, ref: 'Branch', required: true },
     purchaseNumber: { type: String, required: true, trim: true, uppercase: true },
     supplierCode: { type: String, trim: true, uppercase: true },
     warehouseCode: { type: String, required: true, trim: true, uppercase: true },
@@ -46,7 +50,7 @@ const purchaseSchema = new Schema<PurchaseDocument>(
   { timestamps: true }
 );
 
-purchaseSchema.index({ purchaseNumber: 1 }, { unique: true });
-purchaseSchema.index({ createdAt: -1, status: 1 });
+purchaseSchema.index({ companyId: 1, purchaseNumber: 1 }, { unique: true });
+purchaseSchema.index({ companyId: 1, branchId: 1, createdAt: -1, status: 1 });
 
 export const PurchaseModel = model<PurchaseDocument>('Purchase', purchaseSchema);

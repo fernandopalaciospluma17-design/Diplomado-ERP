@@ -6,7 +6,7 @@ import { createUserSchema, loginSchema } from '../validators/auth.validators.js'
 export const loginController: RequestHandler = async (request, response, next) => {
   try {
     const input = loginSchema.parse(request.body);
-    const data = await login(input);
+    const data = await login(input, request.ip, request.get('user-agent'));
     response.status(200).json({ success: true, message: 'Inicio de sesion correcto', data });
   } catch (error) {
     if (error instanceof ZodError) {
@@ -14,7 +14,8 @@ export const loginController: RequestHandler = async (request, response, next) =
       return;
     }
     if (error instanceof AuthError) {
-      response.status(401).json({ success: false, message: error.message, error: { code: error.code, details: [] } });
+      const status = error.code === 'TENANT_NOT_CONFIGURED' ? 409 : 401;
+      response.status(status).json({ success: false, message: error.message, error: { code: error.code, details: [] } });
       return;
     }
     next(error);
@@ -34,9 +35,10 @@ export const currentUserController: RequestHandler = async (request, response, n
   }
 };
 
-export const listUsersController: RequestHandler = async (_request, response, next) => {
+export const listUsersController: RequestHandler = async (request, response, next) => {
   try {
-    const data = await listUsers();
+    if (!request.user?.companyId) { response.status(403).json({ success: false, message: 'Usuario sin empresa asignada', error: { code: 'COMPANY_REQUIRED', details: [] } }); return; }
+    const data = await listUsers(request.user.companyId);
     response.status(200).json({ success: true, message: 'Usuarios consultados', data });
   } catch (error) {
     next(error);
@@ -45,8 +47,9 @@ export const listUsersController: RequestHandler = async (_request, response, ne
 
 export const createUserController: RequestHandler = async (request, response, next) => {
   try {
+    if (!request.user?.companyId || !request.user.branchId) { response.status(403).json({ success: false, message: 'Usuario sin empresa o sucursal asignada', error: { code: 'TENANT_REQUIRED', details: [] } }); return; }
     const input = createUserSchema.parse(request.body);
-    const data = await createUser(input);
+    const data = await createUser(input, request.user.companyId, request.user.branchId);
     response.status(201).json({ success: true, message: 'Usuario creado', data });
   } catch (error) {
     if (error instanceof ZodError) {
@@ -55,6 +58,10 @@ export const createUserController: RequestHandler = async (request, response, ne
     }
     if (error instanceof AuthError && error.code === 'USER_EXISTS') {
       response.status(409).json({ success: false, message: 'El correo ya esta registrado', error: { code: error.code, details: [] } });
+      return;
+    }
+    if (error instanceof AuthError && error.code === 'INVALID_ROLE') {
+      response.status(422).json({ success: false, message: 'Rol o sucursal no válidos para la empresa', error: { code: error.code, details: [] } });
       return;
     }
     next(error);

@@ -1,8 +1,10 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 
 export type InventoryMovementType = 'IN' | 'OUT' | 'ADJUSTMENT';
 
 export interface InventoryBalanceDocument {
+  companyId: Types.ObjectId;
+  branchId: Types.ObjectId;
   productCode: string;
   warehouseCode: string;
   quantity: number;
@@ -11,6 +13,8 @@ export interface InventoryBalanceDocument {
 }
 
 export interface InventoryMovementDocument {
+  companyId: Types.ObjectId;
+  branchId: Types.ObjectId;
   productCode: string;
   warehouseCode: string;
   type: InventoryMovementType;
@@ -25,6 +29,8 @@ export interface InventoryMovementDocument {
 
 const inventoryBalanceSchema = new Schema<InventoryBalanceDocument>(
   {
+    companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
+    branchId: { type: Schema.Types.ObjectId, ref: 'Branch', required: true },
     productCode: { type: String, required: true, trim: true, uppercase: true },
     warehouseCode: { type: String, required: true, trim: true, uppercase: true },
     quantity: { type: Number, required: true, min: 0, default: 0 }
@@ -32,10 +38,12 @@ const inventoryBalanceSchema = new Schema<InventoryBalanceDocument>(
   { timestamps: true }
 );
 
-inventoryBalanceSchema.index({ productCode: 1, warehouseCode: 1 }, { unique: true });
+inventoryBalanceSchema.index({ companyId: 1, branchId: 1, productCode: 1, warehouseCode: 1 }, { unique: true });
 
 const inventoryMovementSchema = new Schema<InventoryMovementDocument>(
   {
+    companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
+    branchId: { type: Schema.Types.ObjectId, ref: 'Branch', required: true },
     productCode: { type: String, required: true, trim: true, uppercase: true },
     warehouseCode: { type: String, required: true, trim: true, uppercase: true },
     type: { type: String, enum: ['IN', 'OUT', 'ADJUSTMENT'], required: true },
@@ -49,7 +57,7 @@ const inventoryMovementSchema = new Schema<InventoryMovementDocument>(
   { timestamps: { createdAt: true, updatedAt: false } }
 );
 
-inventoryMovementSchema.index({ productCode: 1, warehouseCode: 1, createdAt: -1 });
+inventoryMovementSchema.index({ companyId: 1, branchId: 1, productCode: 1, warehouseCode: 1, createdAt: -1 });
 
 export const InventoryBalanceModel = model<InventoryBalanceDocument>('InventoryBalance', inventoryBalanceSchema);
 export const InventoryMovementModel = model<InventoryMovementDocument>('InventoryMovement', inventoryMovementSchema);
