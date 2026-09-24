@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const createPaymentSchema = z.object({
-  amountCents: z.number().int().positive(),
+  amountCents: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
   method: z.enum(['CASH', 'CARD', 'TRANSFER']),
   reference: z.string().trim().max(100).optional()
 });

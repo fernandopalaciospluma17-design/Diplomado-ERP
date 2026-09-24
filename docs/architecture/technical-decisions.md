@@ -42,11 +42,11 @@ La prueba inicial del health check importa la app Express sin abrir una conexion
 
 `npm audit` reporta dos vulnerabilidades moderadas asociadas a Vitest y ofrece una correccion con cambio mayor. No se aplica `npm audit fix --force` automaticamente. Debe revisarse la actualizacion de Vitest antes de FASE 2 o establecerse una politica de excepcion documentada.
 
-## ADR-008: Catalogos tipados en una coleccion
+## ADR-008: Catalogo generico legado y colecciones tipadas
 
-**Estado:** aceptada para FASE 3 inicial
+**Estado:** sustituida en Fase 2; endpoint legado retenido por compatibilidad
 
-Clientes, proveedores, categorias, marcas, productos y almacenes comparten inicialmente una coleccion `Catalog` con un campo `kind`. Esto mantiene un contrato y una capa de validacion uniformes mientras se definen los atributos especificos de cada dominio. El indice unico compuesto por `kind` y `code` evita colisiones entre elementos del mismo catalogo sin impedir que distintos catalogos reutilicen codigos.
+La primera versión guardó clientes, proveedores, categorías, marcas, productos y almacenes en `Catalog` con `metadata` libre. Fase 2 añade colecciones y validación tipadas para relaciones y atributos de dominio. `/catalogs` se mantiene temporalmente para clientes existentes; la conversión de datos requiere mapear metadata y referencias antes de usar ambas APIs sobre el mismo tenant.
 ## ADR-009: Ambito inicial de una empresa y sucursal
 
 **Estado:** aceptada por el usuario para Fase 1

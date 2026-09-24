@@ -10,6 +10,7 @@
 | Configuración empresarial | Configuration, `/core/configuration` | Implementado en código | Definir claves de negocio |
 | Auditoría | Audit model/middleware, `/core/audit` | Parcial | before/after, escritura confiable y retención |
 | Catálogos | Catalog service con tenant filters | Parcial | Atributos y relaciones específicas |
+| Datos maestros tipados | `/master-data/:kind`, modelos y permisos específicos | Implementado en código | Migrar y revisar metadata legado; pruebas de integración por entidad |
 | Inventario | Balance/movement con tenant scope | Parcial | Atomicidad/concurrencia, transferencias/reservas |
 | Compras/ventas/pagos/gastos | Servicios con tenant scope | Parcial | Flujos de fase, conciliación y pruebas con DB |
 | Reporte summary | Agregaciones por tenant | Parcial | Definiciones de KPI/contabilidad |
