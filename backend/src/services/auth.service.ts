@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { UserModel } from '../models/user.model.js';
 import { SessionModel } from '../models/session.model.js';
 import { RoleModel } from '../models/role.model.js';
@@ -29,9 +30,10 @@ export async function login(input: LoginInput, ip?: string, userAgent?: string) 
   await user.save();
 
   const session = await SessionModel.create({ userId: user._id, companyId: user.companyId, branchId: user.branchId, expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), ip, userAgent });
+  const currentUserData = await getCurrentUser(user.id);
   return {
     accessToken: signAccessToken({ sub: user.id, roleId: user.roleId, sid: session.id, companyId: user.companyId?.toString(), branchId: user.branchId?.toString() }),
-    user: { id: user.id, name: user.name, email: user.email, roleId: user.roleId, companyId: user.companyId?.toString(), branchId: user.branchId?.toString(), status: user.status }
+    user: currentUserData
   };
 }
 
@@ -41,7 +43,70 @@ export async function getCurrentUser(userId: string) {
     throw new AuthError('USER_NOT_FOUND');
   }
 
-  return { id: user.id, name: user.name, email: user.email, roleId: user.roleId, companyId: user.companyId?.toString(), branchId: user.branchId?.toString(), status: user.status };
+  let company = null;
+  let branch = null;
+  let availableBranches: Array<{ id: string; code: string; name: string; address?: string }> = [];
+  let roleInfo = null;
+  let permissions: string[] = [];
+
+  if (user.companyId) {
+    const compDoc = await CompanyModel.findById(user.companyId);
+    if (compDoc) {
+      company = {
+        id: compDoc.id,
+        code: compDoc.code,
+        name: compDoc.name,
+        legalName: compDoc.legalName,
+        taxId: compDoc.taxId
+      };
+    }
+    const branchDocs = await BranchModel.find({ companyId: user.companyId, status: 'ACTIVE' }).sort({ name: 1 });
+    availableBranches = branchDocs.map((b) => ({
+      id: b.id,
+      code: b.code,
+      name: b.name,
+      address: b.address
+    }));
+  }
+
+  if (user.branchId) {
+    const branchDoc = await BranchModel.findById(user.branchId);
+    if (branchDoc) {
+      branch = {
+        id: branchDoc.id,
+        code: branchDoc.code,
+        name: branchDoc.name,
+        address: branchDoc.address
+      };
+    }
+  }
+
+  if (user.roleId) {
+    if (Types.ObjectId.isValid(user.roleId)) {
+      const roleDoc = await RoleModel.findOne({ _id: user.roleId, status: 'ACTIVE' }).populate('permissionIds', 'code');
+      if (roleDoc) {
+        roleInfo = { id: roleDoc.id, code: roleDoc.code, name: roleDoc.name };
+        permissions = roleDoc.permissionIds.map((p) => (p as unknown as { code: string }).code);
+      }
+    } else {
+      roleInfo = { id: user.roleId, code: user.roleId, name: user.roleId };
+    }
+  }
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    roleId: user.roleId,
+    companyId: user.companyId?.toString(),
+    branchId: user.branchId?.toString(),
+    status: user.status,
+    company,
+    branch,
+    role: roleInfo,
+    permissions,
+    availableBranches
+  };
 }
 
 export async function revokeSession(sessionId: string, userId: string) {

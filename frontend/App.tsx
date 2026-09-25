@@ -4,18 +4,20 @@ import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View, useWindowDimen
 import { Sidebar, type NodaraModule } from './src/components/Sidebar';
 import { colors } from './src/design/tokens';
 import { ApiError, apiRequest, clearSessionToken, readSessionToken, writeSessionToken } from './src/lib/api';
-import { DashboardScreen, type CurrentUser, type DashboardSummary } from './src/screens/DashboardScreen';
+import { DashboardScreen } from './src/screens/DashboardScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
+import type { CurrentUser, DashboardSummary } from './src/types';
 
 const modules: NodaraModule[] = [
   { label: 'Resumen', shortLabel: 'IN', endpoint: null },
-  { label: 'Inventario', shortLabel: 'IV', endpoint: '/api/v1/master-data/products?page=1&limit=8' },
+  { label: 'Maestros', shortLabel: 'MS', endpoint: '/api/v1/master-data/products' },
+  { label: 'Inventario', shortLabel: 'IV', endpoint: '/api/v1/inventory' },
   { label: 'Ventas', shortLabel: 'VT', endpoint: '/api/v1/sales' },
   { label: 'Compras', shortLabel: 'CP', endpoint: '/api/v1/purchases' },
   { label: 'Finanzas', shortLabel: 'FN', endpoint: '/api/v1/accounting/trial-balance' },
   { label: 'CRM', shortLabel: 'CR', endpoint: '/api/v1/crm/leads' },
-  { label: 'RRHH', shortLabel: 'RH', endpoint: '/api/v1/hr/employees' },
   { label: 'POS', shortLabel: 'PS', endpoint: '/api/v1/pos/sessions' },
+  { label: 'RRHH', shortLabel: 'RH', endpoint: '/api/v1/hr/employees' },
 ];
 
 export default function App() {
@@ -27,19 +29,16 @@ export default function App() {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [selectedModule, setSelectedModule] = useState('Resumen');
-  const [moduleRows, setModuleRows] = useState<Record<string, unknown>[]>([]);
   const [apiStatus, setApiStatus] = useState('Comprobando API');
   const [error, setError] = useState<string | null>(null);
   const [isBooting, setIsBooting] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [moduleLoading, setModuleLoading] = useState(false);
 
   const logout = async () => {
     await clearSessionToken();
     setToken(null);
     setUser(null);
     setSummary(null);
-    setModuleRows([]);
     setSelectedModule('Resumen');
     setError(null);
   };
@@ -72,8 +71,11 @@ export default function App() {
         await loadCurrentUser(saved);
       }
     } catch (restoreError) {
-      if (restoreError instanceof ApiError && restoreError.status === 401) await logout();
-      else setError('No se pudo restaurar la sesión. Intenta iniciar sesión nuevamente.');
+      if (restoreError instanceof ApiError && restoreError.status === 401) {
+        await logout();
+      } else {
+        setError('No se pudo restaurar la sesión. Intenta iniciar sesión nuevamente.');
+      }
     } finally {
       setIsBooting(false);
     }
@@ -87,7 +89,10 @@ export default function App() {
     setIsSubmitting(true);
     setError(null);
     try {
-      const data = await apiRequest<{ accessToken: string }>('/api/v1/auth/login', { method: 'POST', body: JSON.stringify({ email: email.trim(), password }) });
+      const data = await apiRequest<{ accessToken: string }>('/api/v1/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
       await writeSessionToken(data.accessToken);
       setToken(data.accessToken);
       await loadCurrentUser(data.accessToken);
@@ -107,32 +112,18 @@ export default function App() {
     try {
       setError(null);
       await loadCurrentUser(token);
-      if (selectedModule !== 'Resumen') await loadModule(modules.find((module) => module.label === selectedModule) ?? modules[0]!, token);
     } catch (refreshError) {
-      if (refreshError instanceof ApiError && refreshError.status === 401) await logout();
-      else setError(refreshError instanceof Error ? refreshError.message : 'No se pudieron actualizar los datos');
+      if (refreshError instanceof ApiError && refreshError.status === 401) {
+        await logout();
+      } else {
+        setError(refreshError instanceof Error ? refreshError.message : 'No se pudieron actualizar los datos');
+      }
     }
   };
 
-  const loadModule = async (module: NodaraModule, accessToken = token) => {
+  const handleSelectModule = (module: NodaraModule) => {
     setSelectedModule(module.label);
     setError(null);
-    if (!module.endpoint || !accessToken) {
-      setModuleRows([]);
-      return;
-    }
-    setModuleLoading(true);
-    try {
-      const data = await apiRequest<unknown>(module.endpoint, {}, accessToken);
-      const source = data as { items?: unknown[] };
-      setModuleRows(Array.isArray(data) ? data as Record<string, unknown>[] : Array.isArray(source.items) ? source.items as Record<string, unknown>[] : []);
-    } catch (moduleError) {
-      if (moduleError instanceof ApiError && moduleError.status === 401) await logout();
-      else setError(moduleError instanceof Error ? moduleError.message : 'No se pudo cargar el módulo');
-      setModuleRows([]);
-    } finally {
-      setModuleLoading(false);
-    }
   };
 
   useEffect(() => {
@@ -141,18 +132,55 @@ export default function App() {
   }, []);
 
   if (isBooting) {
-    return <View style={styles.boot}><ActivityIndicator color={colors.signature} /><Text style={styles.bootText}>Preparando Nodara...</Text></View>;
+    return (
+      <View style={styles.boot}>
+        <ActivityIndicator color={colors.signature} size="large" />
+        <Text style={styles.bootText}>Iniciando Nodara ERP...</Text>
+      </View>
+    );
   }
 
   if (!user || !token) {
-    return <><LoginScreen email={email} error={error} isSubmitting={isSubmitting} onEmailChange={setEmail} onPasswordChange={setPassword} onSubmit={() => void login()} password={password} /><StatusBar style="light" /></>;
+    return (
+      <>
+        <LoginScreen
+          email={email}
+          error={error}
+          isSubmitting={isSubmitting}
+          onEmailChange={setEmail}
+          onPasswordChange={setPassword}
+          onSubmit={() => void login()}
+          password={password}
+        />
+        <StatusBar style="light" />
+      </>
+    );
   }
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={[styles.shell, compact && styles.shellCompact]}>
-        <Sidebar compact={compact} modules={modules} onLogout={() => void logout()} onSelect={(module) => void loadModule(module)} selected={selectedModule} userName={user.name} />
-        <DashboardScreen apiStatus={apiStatus} error={error} moduleLoading={moduleLoading} moduleRows={moduleRows} modules={modules} onLogout={() => void logout()} onRefresh={() => void refresh()} onSelectModule={(module) => void loadModule(module)} selectedModule={selectedModule} summary={summary} user={user} />
+        <Sidebar
+          compact={compact}
+          modules={modules}
+          onLogout={() => void logout()}
+          onSelect={handleSelectModule}
+          selected={selectedModule}
+          user={user}
+        />
+        <DashboardScreen
+          apiStatus={apiStatus}
+          error={error}
+          modules={modules}
+          onError={(msg) => setError(msg)}
+          onLogout={() => void logout()}
+          onRefresh={() => void refresh()}
+          onSelectModule={handleSelectModule}
+          selectedModule={selectedModule}
+          summary={summary}
+          token={token}
+          user={user}
+        />
       </View>
       <StatusBar style="dark" />
     </SafeAreaView>
