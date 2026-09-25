@@ -9,6 +9,7 @@
     "start": "node dist/server.js",
     "migrate:single-company": "tsx src/scripts/migrate-single-company.ts",
     "test": "vitest run",
+    "test:integration": "vitest run tests/integration",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

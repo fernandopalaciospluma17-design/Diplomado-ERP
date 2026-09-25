@@ -1,0 +1,19 @@
+import type { RequestHandler } from 'express';
+import { ZodError, z } from 'zod';
+import { createAttendance, createEmployee, createLeaveRequest, HRError, listAttendance, listEmployees, listLeaveRequests, reviewLeaveRequest, updateEmployee } from '../services/hr.service.js';
+import { createAttendanceSchema, createEmployeeSchema, createLeaveRequestSchema, reviewLeaveRequestSchema, updateEmployeeSchema } from '../validators/hr.validators.js';
+
+function tenant(req: Parameters<RequestHandler>[0], res: Parameters<RequestHandler>[1]) { if (!req.user?.companyId || !req.user.branchId) { res.status(403).json({ success: false, message: 'Usuario sin empresa o sucursal asignada', error: { code: 'TENANT_REQUIRED', details: [] } }); return undefined; } return { companyId: req.user.companyId, branchId: req.user.branchId }; }
+function handle(error: unknown, res: Parameters<RequestHandler>[1], next: Parameters<RequestHandler>[2]) {
+  if (error instanceof ZodError) { res.status(422).json({ success: false, message: 'Datos invalidos', error: { code: 'VALIDATION_ERROR', details: error.issues } }); return; }
+  if (error instanceof HRError) { const status = ['EMPLOYEE_NOT_FOUND', 'LEAVE_NOT_FOUND', 'ATTENDANCE_NOT_FOUND'].includes(error.code) ? 404 : error.code === 'HR_REFERENCE_INVALID' ? 422 : 409; res.status(status).json({ success: false, message: error.message, error: { code: error.code, details: [] } }); return; }
+  next(error);
+}
+export const listEmployeesController: RequestHandler = async (req, res, next) => { try { const t = tenant(req, res); if (t) res.json({ success: true, message: 'Empleados consultados', data: await listEmployees(t) }); } catch (e) { next(e); } };
+export const createEmployeeController: RequestHandler = async (req, res, next) => { try { const t = tenant(req, res); if (t) res.status(201).json({ success: true, message: 'Empleado creado', data: await createEmployee(createEmployeeSchema.parse(req.body), req.user!.sub, t) }); } catch (e) { handle(e, res, next); } };
+export const updateEmployeeController: RequestHandler = async (req, res, next) => { try { const t = tenant(req, res); if (t) res.json({ success: true, message: 'Empleado actualizado', data: await updateEmployee(z.string().trim().parse(req.params.employeeNumber), updateEmployeeSchema.parse(req.body), t) }); } catch (e) { handle(e, res, next); } };
+export const listLeaveRequestsController: RequestHandler = async (req, res, next) => { try { const t = tenant(req, res); if (t) res.json({ success: true, message: 'Solicitudes consultadas', data: await listLeaveRequests(t) }); } catch (e) { next(e); } };
+export const createLeaveRequestController: RequestHandler = async (req, res, next) => { try { const t = tenant(req, res); if (t) res.status(201).json({ success: true, message: 'Solicitud creada', data: await createLeaveRequest(createLeaveRequestSchema.parse(req.body), req.user!.sub, t) }); } catch (e) { handle(e, res, next); } };
+export const reviewLeaveRequestController: RequestHandler = async (req, res, next) => { try { const t = tenant(req, res); if (t) res.json({ success: true, message: 'Solicitud revisada', data: await reviewLeaveRequest(z.string().trim().parse(req.params.requestNumber), reviewLeaveRequestSchema.parse(req.body), req.user!.sub, t) }); } catch (e) { handle(e, res, next); } };
+export const listAttendanceController: RequestHandler = async (req, res, next) => { try { const t = tenant(req, res); if (t) res.json({ success: true, message: 'Asistencia consultada', data: await listAttendance(t, typeof req.query.workDate === 'string' ? req.query.workDate : undefined) }); } catch (e) { next(e); } };
+export const createAttendanceController: RequestHandler = async (req, res, next) => { try { const t = tenant(req, res); if (t) res.status(201).json({ success: true, message: 'Asistencia registrada', data: await createAttendance(createAttendanceSchema.parse(req.body), req.user!.sub, t) }); } catch (e) { handle(e, res, next); } };

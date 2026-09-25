@@ -9,7 +9,9 @@
     "build": "npm run build:backend",
     "build:backend": "npm --prefix backend run build",
     "test": "npm --prefix backend test",
-    "typecheck": "npm --prefix backend run typecheck"
+    "audit:closure": "node scripts/closure-audit.mjs",
+    "typecheck": "npm --prefix backend run typecheck && npm --prefix frontend run typecheck",
+    "audit:dependencies": "npm audit --audit-level=high && npm --prefix backend audit --audit-level=high && npm --prefix frontend audit --audit-level=high"
   },
   "dependencies": {
     "mongodb": "^7.6.0",

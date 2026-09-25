@@ -1,4 +1,4 @@
-import { model, models, Schema, Types, type Model } from 'mongoose';
+import mongoose, { model, Schema, Types, type Model } from 'mongoose';
 
 export const masterDataKinds = [
   'customers', 'suppliers', 'categories', 'brands', 'products', 'units', 'taxes', 'warehouses', 'payment-methods', 'price-lists'
@@ -43,5 +43,5 @@ const modelNames: Record<MasterDataKind, string> = {
 
 export function getMasterDataModel(kind: MasterDataKind) {
   const name = modelNames[kind];
-  return (models[name] as Model<MasterDataDocument> | undefined) ?? model<MasterDataDocument>(name, commonSchema, collectionNames[kind]);
+  return (mongoose.models[name] as Model<MasterDataDocument> | undefined) ?? model<MasterDataDocument>(name, commonSchema, collectionNames[kind]);
 }

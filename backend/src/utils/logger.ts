@@ -3,5 +3,5 @@ import { env } from '../config/env.js';
 
 export const logger = pino({
   level: env.LOG_LEVEL,
-  redact: ['req.headers.authorization', 'req.headers.cookie']
+  redact: ['req.headers.authorization', 'req.headers.cookie', 'req.body.password', 'req.body.passwordHash']
 });

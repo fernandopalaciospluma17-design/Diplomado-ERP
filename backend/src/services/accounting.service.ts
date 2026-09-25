@@ -73,7 +73,7 @@ export async function postJournalEntry(input: CreateJournalEntryInput, idempoten
 }
 export async function listJournalEntries(tenant: Tenant) { return JournalEntryModel.find(tenant).sort({ entryAt: -1 }).limit(500); }
 export async function getTrialBalance(tenant: Tenant, from?: Date, to?: Date) {
-  const match: Record<string, unknown> = { ...tenant, status: 'POSTED' };
+  const match: Record<string, unknown> = { companyId: new mongoose.Types.ObjectId(tenant.companyId), branchId: new mongoose.Types.ObjectId(tenant.branchId), status: 'POSTED' };
   if (from || to) match.entryAt = { ...(from ? { $gte: from } : {}), ...(to ? { $lte: to } : {}) };
   const totals = await JournalEntryModel.aggregate([
     { $match: match }, { $unwind: '$lines' },

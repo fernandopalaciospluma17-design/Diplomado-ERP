@@ -15,6 +15,14 @@ describe('GET /api/v1/health', () => {
     });
   });
 
+  it('exposes database readiness separately from process health', async () => {
+    const response = await request(app).get('/api/v1/health/ready');
+
+    expect([200, 503]).toContain(response.status);
+    expect(response.body.data).toMatchObject({ service: 'erp-backend' });
+    expect(['ready', 'not_ready']).toContain(response.body.data.status);
+  });
+
   it('rejects the protected endpoint without a bearer token', async () => {
     const response = await request(app).get('/api/v1/health/protected');
 
@@ -56,6 +64,14 @@ describe('GET /api/v1/health', () => {
       success: false,
       error: { code: 'UNAUTHORIZED' }
     });
+  });
+
+  it('requires authentication to read HR employees and attendance', async () => {
+    const employees = await request(app).get('/api/v1/hr/employees');
+    const attendance = await request(app).get('/api/v1/hr/attendance');
+
+    expect(employees.status).toBe(401);
+    expect(attendance.status).toBe(401);
   });
 
   it('requires a persistent session before catalog creation', async () => {

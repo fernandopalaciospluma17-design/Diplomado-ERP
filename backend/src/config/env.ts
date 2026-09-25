@@ -13,6 +13,9 @@ const envSchema = z.object({
   if (value.NODE_ENV === 'production' && !value.JWT_SECRET) {
     context.addIssue({ code: 'custom', path: ['JWT_SECRET'], message: 'JWT_SECRET es obligatorio en producción' });
   }
+  if (value.NODE_ENV === 'production' && value.CORS_ORIGIN.includes('localhost')) {
+    context.addIssue({ code: 'custom', path: ['CORS_ORIGIN'], message: 'CORS_ORIGIN de producción no puede apuntar a localhost' });
+  }
 }).transform((value) => ({ ...value, JWT_SECRET: value.JWT_SECRET ?? 'development-only-secret-change-me-123456' }));
 
 export const env = envSchema.parse(process.env);

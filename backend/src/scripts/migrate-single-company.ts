@@ -60,6 +60,7 @@ const corePermissionDefinitions: [string, string, string][] = [
   ['crm', 'lead', 'READ'], ['crm', 'lead', 'CREATE'], ['crm', 'lead', 'UPDATE'], ['crm', 'opportunity', 'READ'], ['crm', 'opportunity', 'CREATE'], ['crm', 'opportunity', 'UPDATE'], ['crm', 'activity', 'READ'], ['crm', 'activity', 'CREATE'], ['crm', 'activity', 'UPDATE'],
   ['pos', 'session', 'READ'], ['pos', 'session', 'CREATE'], ['pos', 'session', 'APPROVE'], ['pos', 'ticket', 'READ'], ['pos', 'ticket', 'CREATE'],
   ['analytics', 'reports', 'READ']
+  ,['hr', 'employee', 'READ'], ['hr', 'employee', 'CREATE'], ['hr', 'employee', 'UPDATE'], ['hr', 'leave', 'READ'], ['hr', 'leave', 'CREATE'], ['hr', 'leave', 'APPROVE'], ['hr', 'attendance', 'READ'], ['hr', 'attendance', 'CREATE']
 ];
 const permissionDefinitions: [string, string, string][] = [
   ...corePermissionDefinitions,

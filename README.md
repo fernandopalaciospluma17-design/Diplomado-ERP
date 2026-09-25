@@ -19,13 +19,14 @@ La Fase 1 incorpora empresa/sucursal, roles y permisos persistidos, configuracio
 - MongoDB Atlas o MongoDB local como replica set para transacciones de inventario (`docker-compose.yml` configura `rs0`).
 - Dependencias: `npm install --prefix backend` y `npm install --prefix frontend`.
 - Backend: configura `MONGODB_URI` (en desarrollo usa Mongo local por defecto), `CORS_ORIGIN`, `LOG_LEVEL` y `JWT_SECRET`. En produccion `JWT_SECRET` es obligatorio y requiere al menos 32 caracteres.
-- Frontend: `EXPO_PUBLIC_API_URL` se configura desde Expo; `frontend/.env.example` tiene un ejemplo de desarrollo.
+- Frontend Nodara: `EXPO_PUBLIC_API_URL` se configura desde Expo; `frontend/.env.example` tiene un ejemplo de desarrollo. La primera entrega incluye login persistente, shell responsive, navegación modular y dashboard conectado a `/api/v1/reports/summary`.
 
 Comandos desde PowerShell:
 
 ```powershell
 npm.cmd --prefix backend run dev
 npm.cmd --prefix frontend start
+npm.cmd --prefix frontend run typecheck
 npm.cmd --prefix backend run typecheck
 npm.cmd --prefix backend test
 npm.cmd --prefix backend run build

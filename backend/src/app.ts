@@ -19,6 +19,7 @@ import { masterDataRouter } from './routes/master-data.routes.js';
 import { accountingRouter } from './routes/accounting.routes.js';
 import { crmRouter } from './routes/crm.routes.js';
 import { posRouter } from './routes/pos.routes.js';
+import { hrRouter } from './routes/hr.routes.js';
 import { logger } from './utils/logger.js';
 
 export const app = express();
@@ -54,5 +55,6 @@ app.use('/api/v1/reports', reportRouter);
 app.use('/api/v1/accounting', accountingRouter);
 app.use('/api/v1/crm', crmRouter);
 app.use('/api/v1/pos', posRouter);
+app.use('/api/v1/hr', hrRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
