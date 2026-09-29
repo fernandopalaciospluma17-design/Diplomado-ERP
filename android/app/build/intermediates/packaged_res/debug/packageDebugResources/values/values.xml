@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ink">#18201F</color>
+    <color name="mist">#F4F5F1</color>
+    <color name="moss">#547064</color>
+    <color name="paper">#FFFFFF</color>
+    <color name="signature">#E08934</color>
+    <color name="slate">#35413F</color>
+    <string name="app_name">Nodara ERP</string>
+    <style name="Theme.NodaraERP" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/signature</item>
+        <item name="colorOnPrimary">@color/ink</item>
+        <item name="colorSecondary">@color/moss</item>
+        <item name="android:statusBarColor">@color/ink</item>
+        <item name="android:navigationBarColor">@color/mist</item>
+    </style>
+</resources>

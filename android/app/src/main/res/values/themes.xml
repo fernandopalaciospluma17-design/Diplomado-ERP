@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.NodaraERP" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/signature</item>
+        <item name="colorOnPrimary">@color/ink</item>
+        <item name="colorSecondary">@color/moss</item>
+        <item name="android:statusBarColor">@color/ink</item>
+        <item name="android:navigationBarColor">@color/mist</item>
+    </style>
+</resources>

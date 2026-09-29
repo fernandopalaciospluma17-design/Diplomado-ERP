@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.nodara.erp.app-mergeDebugResources-67:/values-watch-v21/values-watch-v21.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\craft\\.gradle\\caches\\9.3.0\\transforms\\a0a502bbcb29fba68da757e132610a5e\\workspace\\transformed\\appcompat-1.6.1\\res\\values-watch-v21\\values-watch-v21.xml",
+                    "from": {
+                        "startLines": "2,6,10",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,271,499",
+                        "endLines": "5,9,13",
+                        "endColumns": "12,12,12",
+                        "endOffsets": "266,494,724"
+                    }
+                }
+            ]
+        }
+    ]
+}

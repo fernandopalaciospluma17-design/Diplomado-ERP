@@ -1,0 +1,72 @@
+com.nodara.erp.app-savedstate-ktx-1.2.1-0 C:\Users\craft\.gradle\caches\9.3.0\transforms\0fb6357c4c8280acb3b5f0dfa9d5e9f2\workspace\transformed\savedstate-ktx-1.2.1\res
+com.nodara.erp.app-emoji2-1.3.0-1 C:\Users\craft\.gradle\caches\9.3.0\transforms\125c16427f34b326618815034956e8c6\workspace\transformed\emoji2-1.3.0\res
+com.nodara.erp.app-tracing-1.2.0-2 C:\Users\craft\.gradle\caches\9.3.0\transforms\162c4cfffe4cd3103533d53582a6014d\workspace\transformed\tracing-1.2.0\res
+com.nodara.erp.app-security-crypto-1.1.0-alpha06-3 C:\Users\craft\.gradle\caches\9.3.0\transforms\1a480a2d0fe653326e4fe9c6e47cf845\workspace\transformed\security-crypto-1.1.0-alpha06\res
+com.nodara.erp.app-material-icons-core-release-4 C:\Users\craft\.gradle\caches\9.3.0\transforms\1a6938c2cbe42a0d173746cc35dd1168\workspace\transformed\material-icons-core-release\res
+com.nodara.erp.app-drawerlayout-1.1.1-5 C:\Users\craft\.gradle\caches\9.3.0\transforms\1e25e4e44247d31dc46df7dd61d94c36\workspace\transformed\drawerlayout-1.1.1\res
+com.nodara.erp.app-navigation-runtime-ktx-2.8.4-6 C:\Users\craft\.gradle\caches\9.3.0\transforms\1fcf7f786052800e685490640e56c566\workspace\transformed\navigation-runtime-ktx-2.8.4\res
+com.nodara.erp.app-appcompat-resources-1.6.1-7 C:\Users\craft\.gradle\caches\9.3.0\transforms\28fbebe9b6e79632bb547c27b85f1b18\workspace\transformed\appcompat-resources-1.6.1\res
+com.nodara.erp.app-material-1.12.0-8 C:\Users\craft\.gradle\caches\9.3.0\transforms\2f3916cb2f3ad551896f224f8f13b38b\workspace\transformed\material-1.12.0\res
+com.nodara.erp.app-ui-unit-release-9 C:\Users\craft\.gradle\caches\9.3.0\transforms\3257573f1365cc163db3789a8e717460\workspace\transformed\ui-unit-release\res
+com.nodara.erp.app-ui-test-manifest-1.7.5-10 C:\Users\craft\.gradle\caches\9.3.0\transforms\3275451b0daef8a5b642005082c44e96\workspace\transformed\ui-test-manifest-1.7.5\res
+com.nodara.erp.app-recyclerview-1.1.0-11 C:\Users\craft\.gradle\caches\9.3.0\transforms\32e8689388850547ecb447f5e852e8a0\workspace\transformed\recyclerview-1.1.0\res
+com.nodara.erp.app-lifecycle-viewmodel-release-12 C:\Users\craft\.gradle\caches\9.3.0\transforms\33040ab5b2409d5fb4d5e2cfb7ef21b5\workspace\transformed\lifecycle-viewmodel-release\res
+com.nodara.erp.app-core-runtime-2.2.0-13 C:\Users\craft\.gradle\caches\9.3.0\transforms\35498e64e1d4cfb6cfd808704e583942\workspace\transformed\core-runtime-2.2.0\res
+com.nodara.erp.app-coordinatorlayout-1.1.0-14 C:\Users\craft\.gradle\caches\9.3.0\transforms\3a5bff1a1877cc25a5e0d538f0cc1884\workspace\transformed\coordinatorlayout-1.1.0\res
+com.nodara.erp.app-material-release-15 C:\Users\craft\.gradle\caches\9.3.0\transforms\4210aaecd59f94093ffd581169e3a20a\workspace\transformed\material-release\res
+com.nodara.erp.app-animation-release-16 C:\Users\craft\.gradle\caches\9.3.0\transforms\4999f8d507166074eaa9f098ba3ad977\workspace\transformed\animation-release\res
+com.nodara.erp.app-lifecycle-runtime-compose-release-17 C:\Users\craft\.gradle\caches\9.3.0\transforms\4a28624064e47e8f64b1be257d2f673a\workspace\transformed\lifecycle-runtime-compose-release\res
+com.nodara.erp.app-core-1.15.0-18 C:\Users\craft\.gradle\caches\9.3.0\transforms\4ef332fedb4bb39d9d4445779281e9c7\workspace\transformed\core-1.15.0\res
+com.nodara.erp.app-runtime-saveable-release-19 C:\Users\craft\.gradle\caches\9.3.0\transforms\4fe0e19a9a05eb10a0dfa442e0e471e6\workspace\transformed\runtime-saveable-release\res
+com.nodara.erp.app-ui-util-release-20 C:\Users\craft\.gradle\caches\9.3.0\transforms\58e2f5bf0ca2674d40c0302312294ea3\workspace\transformed\ui-util-release\res
+com.nodara.erp.app-lifecycle-viewmodel-ktx-2.8.7-21 C:\Users\craft\.gradle\caches\9.3.0\transforms\58f4295eb5afcc89fe8180d872c69963\workspace\transformed\lifecycle-viewmodel-ktx-2.8.7\res
+com.nodara.erp.app-lifecycle-livedata-core-ktx-2.8.7-22 C:\Users\craft\.gradle\caches\9.3.0\transforms\5e3a9e80d23ceac4d3d41df077d1f51c\workspace\transformed\lifecycle-livedata-core-ktx-2.8.7\res
+com.nodara.erp.app-customview-poolingcontainer-1.0.0-23 C:\Users\craft\.gradle\caches\9.3.0\transforms\5e618c919ab49a26528e1b585497931f\workspace\transformed\customview-poolingcontainer-1.0.0\res
+com.nodara.erp.app-fragment-1.3.6-24 C:\Users\craft\.gradle\caches\9.3.0\transforms\5fc50057b3fab6041c59ad01ea4baf82\workspace\transformed\fragment-1.3.6\res
+com.nodara.erp.app-core-ktx-1.15.0-25 C:\Users\craft\.gradle\caches\9.3.0\transforms\688844ed83399053fe666963811a3c72\workspace\transformed\core-ktx-1.15.0\res
+com.nodara.erp.app-ui-geometry-release-26 C:\Users\craft\.gradle\caches\9.3.0\transforms\6d45bd88a9557329494172037a77260e\workspace\transformed\ui-geometry-release\res
+com.nodara.erp.app-startup-runtime-1.1.1-27 C:\Users\craft\.gradle\caches\9.3.0\transforms\718d55b896e06a6c0352987ccc60b109\workspace\transformed\startup-runtime-1.1.1\res
+com.nodara.erp.app-lifecycle-runtime-release-28 C:\Users\craft\.gradle\caches\9.3.0\transforms\733bd6393f67471653f900d026f18aff\workspace\transformed\lifecycle-runtime-release\res
+com.nodara.erp.app-lifecycle-viewmodel-compose-release-29 C:\Users\craft\.gradle\caches\9.3.0\transforms\745bbc0a8c63eb9082d6484952c6b89f\workspace\transformed\lifecycle-viewmodel-compose-release\res
+com.nodara.erp.app-graphics-path-1.0.1-30 C:\Users\craft\.gradle\caches\9.3.0\transforms\7c525a0d987e29cfbbd48aa8b9f6694d\workspace\transformed\graphics-path-1.0.1\res
+com.nodara.erp.app-navigation-compose-2.8.4-31 C:\Users\craft\.gradle\caches\9.3.0\transforms\7d6a3f5f95d1b44633aebff4c5ce2860\workspace\transformed\navigation-compose-2.8.4\res
+com.nodara.erp.app-transition-1.5.0-32 C:\Users\craft\.gradle\caches\9.3.0\transforms\80988cd1ac87d51321cf68062d563e74\workspace\transformed\transition-1.5.0\res
+com.nodara.erp.app-viewpager2-1.0.0-33 C:\Users\craft\.gradle\caches\9.3.0\transforms\83cc8b0bf3306d9bf66de2bd188422c3\workspace\transformed\viewpager2-1.0.0\res
+com.nodara.erp.app-activity-1.9.3-34 C:\Users\craft\.gradle\caches\9.3.0\transforms\86995d2918029bb2f2ae0fac431a9a2e\workspace\transformed\activity-1.9.3\res
+com.nodara.erp.app-ui-tooling-data-release-35 C:\Users\craft\.gradle\caches\9.3.0\transforms\9152c9cf807b6b0afb765d9c9b8ba186\workspace\transformed\ui-tooling-data-release\res
+com.nodara.erp.app-cardview-1.0.0-36 C:\Users\craft\.gradle\caches\9.3.0\transforms\97cf242b912f99685a052f253fa8effc\workspace\transformed\cardview-1.0.0\res
+com.nodara.erp.app-emoji2-views-helper-1.3.0-37 C:\Users\craft\.gradle\caches\9.3.0\transforms\9862e510ea24530d4eac217b3e063a84\workspace\transformed\emoji2-views-helper-1.3.0\res
+com.nodara.erp.app-ui-tooling-release-38 C:\Users\craft\.gradle\caches\9.3.0\transforms\9870efb7e8f73d69a7450066e0e9ed50\workspace\transformed\ui-tooling-release\res
+com.nodara.erp.app-annotation-experimental-1.4.1-39 C:\Users\craft\.gradle\caches\9.3.0\transforms\991401b764c062a03cb7b58ef251392a\workspace\transformed\annotation-experimental-1.4.1\res
+com.nodara.erp.app-activity-ktx-1.9.3-40 C:\Users\craft\.gradle\caches\9.3.0\transforms\9a74e787f3e4c4b8295a0a0d438017d2\workspace\transformed\activity-ktx-1.9.3\res
+com.nodara.erp.app-lifecycle-viewmodel-savedstate-2.8.7-41 C:\Users\craft\.gradle\caches\9.3.0\transforms\9cc924a0ad375c56aeef191aa49fe967\workspace\transformed\lifecycle-viewmodel-savedstate-2.8.7\res
+com.nodara.erp.app-navigation-runtime-2.8.4-42 C:\Users\craft\.gradle\caches\9.3.0\transforms\9d1687814e247d9a71a964635e05ba4a\workspace\transformed\navigation-runtime-2.8.4\res
+com.nodara.erp.app-appcompat-1.6.1-43 C:\Users\craft\.gradle\caches\9.3.0\transforms\a0a502bbcb29fba68da757e132610a5e\workspace\transformed\appcompat-1.6.1\res
+com.nodara.erp.app-constraintlayout-2.0.1-44 C:\Users\craft\.gradle\caches\9.3.0\transforms\a0fb34aaa75ccb27c4ec1101a2dd6be3\workspace\transformed\constraintlayout-2.0.1\res
+com.nodara.erp.app-ui-text-release-45 C:\Users\craft\.gradle\caches\9.3.0\transforms\ae39eb7e1d5e2105156f8509ce5a3b4f\workspace\transformed\ui-text-release\res
+com.nodara.erp.app-lifecycle-runtime-ktx-release-46 C:\Users\craft\.gradle\caches\9.3.0\transforms\aed89fba8e31bd57a370c88ea7ec8818\workspace\transformed\lifecycle-runtime-ktx-release\res
+com.nodara.erp.app-navigation-common-2.8.4-47 C:\Users\craft\.gradle\caches\9.3.0\transforms\b44b421d84272e80f6bbebb89b4b5f0f\workspace\transformed\navigation-common-2.8.4\res
+com.nodara.erp.app-navigation-common-ktx-2.8.4-48 C:\Users\craft\.gradle\caches\9.3.0\transforms\c7db92304cfc25dee588b40951130450\workspace\transformed\navigation-common-ktx-2.8.4\res
+com.nodara.erp.app-savedstate-1.2.1-49 C:\Users\craft\.gradle\caches\9.3.0\transforms\c908188e4887fb16fb2ae7e4efb62437\workspace\transformed\savedstate-1.2.1\res
+com.nodara.erp.app-ui-graphics-release-50 C:\Users\craft\.gradle\caches\9.3.0\transforms\cb55f36eaec648f36a3d9a6e8ebc87d7\workspace\transformed\ui-graphics-release\res
+com.nodara.erp.app-foundation-layout-release-51 C:\Users\craft\.gradle\caches\9.3.0\transforms\ce5428089fb5732ad915783b0c30b9c8\workspace\transformed\foundation-layout-release\res
+com.nodara.erp.app-ui-tooling-preview-release-52 C:\Users\craft\.gradle\caches\9.3.0\transforms\d3f49017fb59c44bd66251d779130e7a\workspace\transformed\ui-tooling-preview-release\res
+com.nodara.erp.app-material-ripple-release-53 C:\Users\craft\.gradle\caches\9.3.0\transforms\d759c9ab39f6e7b6c26edeca7ed6199d\workspace\transformed\material-ripple-release\res
+com.nodara.erp.app-ui-release-54 C:\Users\craft\.gradle\caches\9.3.0\transforms\d8890ac0f999e7d0ded822cc205e383d\workspace\transformed\ui-release\res
+com.nodara.erp.app-foundation-release-55 C:\Users\craft\.gradle\caches\9.3.0\transforms\d992c45a38b2d44609ca02028cd8eb75\workspace\transformed\foundation-release\res
+com.nodara.erp.app-lifecycle-process-2.8.7-56 C:\Users\craft\.gradle\caches\9.3.0\transforms\debc6799aad62cb2ef0d88caa8258e08\workspace\transformed\lifecycle-process-2.8.7\res
+com.nodara.erp.app-runtime-release-57 C:\Users\craft\.gradle\caches\9.3.0\transforms\e32ad55a4a3f333ff9b1ede45033f9a2\workspace\transformed\runtime-release\res
+com.nodara.erp.app-animation-core-release-58 C:\Users\craft\.gradle\caches\9.3.0\transforms\e636bf72c05734c0673332dba73bfc95\workspace\transformed\animation-core-release\res
+com.nodara.erp.app-material3-release-59 C:\Users\craft\.gradle\caches\9.3.0\transforms\e67712184033f767f7f11692b55af1c7\workspace\transformed\material3-release\res
+com.nodara.erp.app-lifecycle-livedata-2.8.7-60 C:\Users\craft\.gradle\caches\9.3.0\transforms\e9445a9e5c3277b5b75971656946afbf\workspace\transformed\lifecycle-livedata-2.8.7\res
+com.nodara.erp.app-profileinstaller-1.3.1-61 C:\Users\craft\.gradle\caches\9.3.0\transforms\eb28c90a9ca2f418846d881d10ff8e28\workspace\transformed\profileinstaller-1.3.1\res
+com.nodara.erp.app-lifecycle-livedata-core-2.8.7-62 C:\Users\craft\.gradle\caches\9.3.0\transforms\f960184211053ed7e5974f35060566bd\workspace\transformed\lifecycle-livedata-core-2.8.7\res
+com.nodara.erp.app-material-icons-extended-release-63 C:\Users\craft\.gradle\caches\9.3.0\transforms\fa7007f8ea6031d980d25562fa8b4014\workspace\transformed\material-icons-extended-release\res
+com.nodara.erp.app-activity-compose-1.9.3-64 C:\Users\craft\.gradle\caches\9.3.0\transforms\fb8ae97d4a6bfb94a2e62ba5cacb7e26\workspace\transformed\activity-compose-1.9.3\res
+com.nodara.erp.app-resValues-65 C:\Users\craft\OneDrive\Documentos\proyecto diplomado\android\app\build\generated\res\resValues\debug
+com.nodara.erp.app-updated_navigation_xml-66 C:\Users\craft\OneDrive\Documentos\proyecto diplomado\android\app\build\generated\updated_navigation_xml\debug
+com.nodara.erp.app-packageDebugResources-67 C:\Users\craft\OneDrive\Documentos\proyecto diplomado\android\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.nodara.erp.app-packageDebugResources-68 C:\Users\craft\OneDrive\Documentos\proyecto diplomado\android\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.nodara.erp.app-debug-69 C:\Users\craft\OneDrive\Documentos\proyecto diplomado\android\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.nodara.erp.app-debug-70 C:\Users\craft\OneDrive\Documentos\proyecto diplomado\android\app\src\debug\res
+com.nodara.erp.app-main-71 C:\Users\craft\OneDrive\Documentos\proyecto diplomado\android\app\src\main\res
