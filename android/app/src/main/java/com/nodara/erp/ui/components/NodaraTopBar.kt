@@ -1,5 +1,6 @@
 package com.nodara.erp.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -10,9 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nodara.erp.R
 import com.nodara.erp.data.model.CurrentUser
 import com.nodara.erp.theme.*
 
@@ -24,19 +27,29 @@ fun NodaraTopBar(user: CurrentUser?, apiStatus: String, onRefresh: () -> Unit) {
 
     TopAppBar(
         title = {
-            Column {
-                Text(
-                    text = companyName.uppercase(),
-                    color = SignatureOrange,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.ExtraBold
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(id = R.drawable.nodara_logo),
+                    contentDescription = "Logo Nodara ERP",
+                    modifier = Modifier
+                        .width(90.dp)
+                        .height(27.dp)
+                        .padding(end = 8.dp)
                 )
-                Text(
-                    text = branchName,
-                    color = InkBlack,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Column {
+                    Text(
+                        text = companyName.uppercase(),
+                        color = SignatureOrange,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = branchName,
+                        color = InkBlack,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         },
         actions = {

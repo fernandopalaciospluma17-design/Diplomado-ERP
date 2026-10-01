@@ -1,5 +1,6 @@
 package com.nodara.erp.ui.login
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -10,8 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nodara.erp.R
 import com.nodara.erp.theme.*
 
 @Composable
@@ -43,13 +46,16 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "NODARA ERP",
-                color = SignatureOrange,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 2.sp
-            )
+            Surface(
+                color = PaperWhite,
+                shape = MaterialTheme.shapes.small
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.nodara_logo),
+                    contentDescription = "Logo de Nodara ERP",
+                    modifier = Modifier.width(224.dp).height(67.dp)
+                )
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Tu negocio, en una sola vista.",
