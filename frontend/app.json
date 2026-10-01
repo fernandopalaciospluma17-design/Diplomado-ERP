@@ -6,7 +6,12 @@
     "orientation": "default",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "web": { "bundler": "metro" },
-    "android": { "package": "com.example.erp" }
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "android": {
+      "package": "com.example.erp"
+    }
   }
 }
