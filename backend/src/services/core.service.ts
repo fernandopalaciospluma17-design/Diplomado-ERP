@@ -6,6 +6,8 @@ import { ConfigurationModel } from '../models/configuration.model.js';
 import { PermissionModel } from '../models/permission.model.js';
 import { RoleModel } from '../models/role.model.js';
 import { SessionModel } from '../models/session.model.js';
+import { UserModel } from '../models/user.model.js';
+import { EmailDeliveryError, sendRolePermissionsChangedEmail } from './email.service.js';
 import type { CreateBranchInput, CreateRoleInput, UpdateBranchInput, UpdateCompanyInput } from '../validators/core.validators.js';
 
 export class CoreError extends Error {
@@ -52,8 +54,32 @@ export async function updateRole(companyId: string, roleId: string, input: Parti
     const permissionCount = await PermissionModel.countDocuments({ _id: { $in: input.permissionIds }, code: { $in: grantedPermissionCodes } });
     if (permissionCount !== new Set(input.permissionIds).size) throw new CoreError('INVALID_PERMISSION');
   }
+  const existingRole = await RoleModel.findOne({ _id: roleId, companyId });
+  if (!existingRole) throw new CoreError('NOT_FOUND');
+  const previousPermissionIds = existingRole.permissionIds.map(String).sort();
   const role = await RoleModel.findOneAndUpdate({ _id: roleId, companyId }, input, { new: true, runValidators: true }).populate('permissionIds');
   if (!role) throw new CoreError('NOT_FOUND');
+
+  const permissionsChanged = input.permissionIds !== undefined
+    && previousPermissionIds.join(',') !== [...input.permissionIds].sort().join(',');
+  const roleStatusChanged = input.status !== undefined && input.status !== existingRole.status;
+  if (permissionsChanged || roleStatusChanged) {
+    try {
+      const affectedUsers = await UserModel.find({ companyId, roleId, status: 'ACTIVE' }).select('name email');
+      const deliveryResults = await Promise.allSettled(
+        affectedUsers.map((user) => sendRolePermissionsChangedEmail(user.email, user.name, role.name))
+      );
+      const deliveryErrors = deliveryResults
+        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+        .map((result) => result.reason);
+      if (deliveryErrors.length > 0) {
+        throw new AggregateError(deliveryErrors, 'Some affected users were not notified');
+      }
+    } catch (error) {
+      throw new EmailDeliveryError('El rol se actualizó, pero no se pudieron enviar todas las notificaciones.', { cause: error });
+    }
+  }
+
   return role;
 }
 

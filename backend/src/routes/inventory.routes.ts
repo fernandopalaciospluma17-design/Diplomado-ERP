@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { applyInventoryMovementController, consumeInventoryReservationController, createInventoryCountController, createInventoryReservationController, createWarehouseLocationController, getInventoryController, listInventoryCountsController, listInventoryLocationBalancesController, listInventoryLotsController, listInventoryMovementsController, listInventoryReservationsController, listInventorySerialsController, listWarehouseLocationsController, releaseInventoryReservationController, transferInventoryController } from '../controllers/inventory.controller.js';
+import { applyInventoryMovementController, consumeInventoryReservationController, createInventoryCountController, createInventoryReservationController, createWarehouseLocationController, getInventoryController, listInventoryBalancesController, listInventoryCountsController, listInventoryLocationBalancesController, listInventoryLotsController, listInventoryMovementsController, listInventoryReservationsController, listInventorySerialsController, listWarehouseLocationsController, releaseInventoryReservationController, transferInventoryController } from '../controllers/inventory.controller.js';
 import { requireAuth, requirePermission } from '../middlewares/auth.js';
 import { auditAction } from '../middlewares/audit.js';
 
 export const inventoryRouter = Router();
 
+inventoryRouter.get('/', requireAuth, requirePermission('inventory.stock.read'), listInventoryBalancesController);
 inventoryRouter.get('/:productCode/:warehouseCode', requireAuth, requirePermission('inventory.stock.read'), getInventoryController);
 inventoryRouter.get('/locations', requireAuth, requirePermission('inventory.stock.read'), listWarehouseLocationsController);
 inventoryRouter.post('/locations', requireAuth, requirePermission('inventory.movement.create'), auditAction('WAREHOUSE_LOCATION_CREATE'), createWarehouseLocationController);

@@ -7,6 +7,7 @@ color paper
 color signature
 color slate
 drawable ic_launcher
+drawable nodara_logo
 string app_name
 style Theme.NodaraERP
 xml network_security_config

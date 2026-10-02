@@ -1,5 +1,6 @@
 import type { RequestHandler } from 'express';
 import { ZodError, z } from 'zod';
+import { InventoryBalanceModel } from '../models/inventory.model.js';
 import { InventoryError, applyInventoryMovement, consumeInventoryReservation, createInventoryCount, createInventoryReservation, createWarehouseLocation, getInventory, listInventoryCounts, listInventoryLocationBalances, listInventoryLots, listInventoryMovements, listInventoryReservations, listInventorySerials, listWarehouseLocations, releaseInventoryReservation, transferInventory } from '../services/inventory.service.js';
 import { inventoryCountSchema, inventoryMovementSchema, inventoryReservationSchema, inventoryTransferSchema, reservationReleaseSchema, warehouseLocationSchema } from '../validators/inventory.validators.js';
 
@@ -25,6 +26,24 @@ function getTenant(request: Parameters<RequestHandler>[0], response: Parameters<
   }
   return { companyId: request.user.companyId, branchId: request.user.branchId };
 }
+
+export const listInventoryBalancesController: RequestHandler = async (request, response, next) => {
+  try {
+    const tenant = getTenant(request, response); if (!tenant) return;
+    const data = await InventoryBalanceModel.find({ companyId: tenant.companyId }).limit(100);
+    const mapped = data.map((item) => ({
+      id: item._id.toString(),
+      sku: item.productCode,
+      warehouseCode: item.warehouseCode,
+      quantityOnHand: item.quantity,
+      quantityReserved: item.reservedQuantity ?? 0,
+      quantityAvailable: Math.max(0, item.quantity - (item.reservedQuantity ?? 0))
+    }));
+    response.status(200).json({ success: true, message: 'Inventario consultado', data: mapped });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const getInventoryController: RequestHandler = async (request, response, next) => {
   try {

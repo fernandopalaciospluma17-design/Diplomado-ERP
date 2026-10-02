@@ -19,6 +19,7 @@ La Fase 1 incorpora empresa/sucursal, roles y permisos persistidos, configuracio
 - MongoDB Atlas o MongoDB local como replica set para transacciones de inventario (`docker-compose.yml` configura `rs0`).
 - Dependencias: `npm install --prefix backend` y `npm install --prefix frontend`.
 - Backend: configura `MONGODB_URI` (en desarrollo usa Mongo local por defecto), `CORS_ORIGIN`, `LOG_LEVEL` y `JWT_SECRET`. En produccion `JWT_SECRET` es obligatorio y requiere al menos 32 caracteres.
+- Correo transaccional: el backend usa Resend para invitar usuarios y notificar cambios efectivos de permisos o estado de roles a las cuentas activas afectadas. Configura `RESEND_API_KEY`, `EMAIL_FROM` con un remitente de un dominio verificado, y `PUBLIC_APP_URL` con la URL pública HTTPS de la app. En Render, define estas variables en el servicio backend. `backend/.env.example` muestra la configuración local. Las cuentas nuevas quedan pendientes hasta que el usuario abre el enlace, establece su contraseña y confirma la cuenta; el enlace vence en 24 horas. Si vence, un administrador puede reenviarlo con `POST /api/v1/auth/users/:userId/resend-invitation`.
 - Frontend Nodara: `EXPO_PUBLIC_API_URL` se configura desde Expo; `frontend/.env.example` tiene un ejemplo de desarrollo. La primera entrega incluye login persistente, shell responsive, navegación modular y dashboard conectado a `/api/v1/reports/summary`.
 
 Comandos desde PowerShell:

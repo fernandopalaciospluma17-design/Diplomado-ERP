@@ -1,7 +1,9 @@
 import type { RequestHandler } from 'express';
 import { ZodError } from 'zod';
-import { AuthError, createUser, getCurrentUser, listUsers, login } from '../services/auth.service.js';
-import { createUserSchema, loginSchema } from '../validators/auth.validators.js';
+import { AuthError, confirmAccount, createUser, getCurrentUser, listUsers, login, resendAccountInvitation } from '../services/auth.service.js';
+import { confirmAccountSchema, createUserSchema, loginSchema, resendInvitationParamsSchema } from '../validators/auth.validators.js';
+import { EmailDeliveryError } from '../services/email.service.js';
+import { logger } from '../utils/logger.js';
 
 export const loginController: RequestHandler = async (request, response, next) => {
   try {
@@ -62,6 +64,60 @@ export const createUserController: RequestHandler = async (request, response, ne
     }
     if (error instanceof AuthError && error.code === 'INVALID_ROLE') {
       response.status(422).json({ success: false, message: 'Rol o sucursal no válidos para la empresa', error: { code: error.code, details: [] } });
+      return;
+    }
+    if (error instanceof EmailDeliveryError) {
+      logger.error({ err: error, requestId: request.requestId }, 'Unable to send account invitation');
+      response.status(503).json({ success: false, message: 'No se pudo enviar la invitación. No se creó la cuenta; inténtalo nuevamente.', error: { code: 'EMAIL_DELIVERY_FAILED', details: [] } });
+      return;
+    }
+    next(error);
+  }
+};
+
+export const confirmAccountController: RequestHandler = async (request, response, next) => {
+  try {
+    const input = confirmAccountSchema.parse(request.body);
+    const data = await confirmAccount(input.token, input.password);
+    response.status(200).json({ success: true, message: 'Cuenta confirmada. Ya puedes iniciar sesión.', data });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      response.status(422).json({ success: false, message: 'Datos invalidos', error: { code: 'VALIDATION_ERROR', details: error.issues } });
+      return;
+    }
+    if (error instanceof AuthError && error.code === 'INVALID_CONFIRMATION_TOKEN') {
+      response.status(400).json({ success: false, message: 'El enlace de confirmación no es válido o ya venció.', error: { code: error.code, details: [] } });
+      return;
+    }
+    next(error);
+  }
+};
+
+export const resendAccountInvitationController: RequestHandler = async (request, response, next) => {
+  try {
+    if (!request.user?.companyId) {
+      response.status(403).json({ success: false, message: 'Usuario sin empresa asignada', error: { code: 'COMPANY_REQUIRED', details: [] } });
+      return;
+    }
+    const { userId } = resendInvitationParamsSchema.parse(request.params);
+    const data = await resendAccountInvitation(userId, request.user.companyId);
+    response.status(200).json({ success: true, message: 'Invitación reenviada', data });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      response.status(422).json({ success: false, message: 'Datos invalidos', error: { code: 'VALIDATION_ERROR', details: error.issues } });
+      return;
+    }
+    if (error instanceof AuthError && error.code === 'USER_NOT_FOUND') {
+      response.status(404).json({ success: false, message: 'Usuario no encontrado', error: { code: error.code, details: [] } });
+      return;
+    }
+    if (error instanceof AuthError && error.code === 'USER_NOT_PENDING_CONFIRMATION') {
+      response.status(409).json({ success: false, message: 'La cuenta no está pendiente de confirmación.', error: { code: error.code, details: [] } });
+      return;
+    }
+    if (error instanceof EmailDeliveryError) {
+      logger.error({ err: error, requestId: request.requestId }, 'Unable to resend account invitation');
+      response.status(503).json({ success: false, message: 'La cuenta continúa pendiente, pero no se pudo enviar la invitación. Inténtalo nuevamente.', error: { code: 'EMAIL_DELIVERY_FAILED', details: [] } });
       return;
     }
     next(error);

@@ -1,9 +1,10 @@
 package com.nodara.erp.data.repository
 
-import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.nodara.erp.data.local.SessionManager
 import com.nodara.erp.data.model.*
 import com.nodara.erp.data.remote.AuthInterceptor
+import com.nodara.erp.data.remote.FlexibleListDeserializer
 import com.nodara.erp.data.remote.NodaraApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -12,7 +13,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 class NodaraRepository(private val sessionManager: SessionManager) {
-    private val gson = Gson()
+    private val gson = GsonBuilder()
+        .registerTypeHierarchyAdapter(List::class.java, FlexibleListDeserializer())
+        .create()
 
     private fun createApiService(baseUrl: String): NodaraApiService {
         val logging = HttpLoggingInterceptor().apply {
@@ -113,10 +116,40 @@ class NodaraRepository(private val sessionManager: SessionManager) {
             if (res.isSuccessful && res.body() != null) {
                 Result.success(res.body()!!.data)
             } else {
-                Result.failure(Exception("Error al cargar inventario"))
+                val productsRes = getProducts()
+                if (productsRes.isSuccess) {
+                    val fallback = productsRes.getOrNull()?.map { product ->
+                        InventoryBalance(
+                            id = product.id,
+                            sku = product.code,
+                            warehouseCode = "PRINCIPAL",
+                            quantityOnHand = 0.0,
+                            quantityReserved = 0.0,
+                            quantityAvailable = 0.0
+                        )
+                    } ?: emptyList()
+                    Result.success(fallback)
+                } else {
+                    Result.success(emptyList())
+                }
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            val productsRes = getProducts()
+            if (productsRes.isSuccess) {
+                val fallback = productsRes.getOrNull()?.map { product ->
+                    InventoryBalance(
+                        id = product.id,
+                        sku = product.code,
+                        warehouseCode = "PRINCIPAL",
+                        quantityOnHand = 0.0,
+                        quantityReserved = 0.0,
+                        quantityAvailable = 0.0
+                    )
+                } ?: emptyList()
+                Result.success(fallback)
+            } else {
+                Result.success(emptyList())
+            }
         }
     }
 

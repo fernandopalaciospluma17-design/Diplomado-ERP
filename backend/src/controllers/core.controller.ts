@@ -2,12 +2,17 @@ import type { RequestHandler } from 'express';
 import { ZodError } from 'zod';
 import { CoreError, createBranch, createRole, listAuditEvents, listBranches, listCompany, listConfiguration, listPermissions, listRoles, listSessions, revokeAllSessions, setConfiguration, updateBranch, updateCompany, updateRole } from '../services/core.service.js';
 import { createBranchSchema, createRoleSchema, setConfigurationSchema, updateBranchSchema, updateCompanySchema, updateRoleSchema } from '../validators/core.validators.js';
+import { EmailDeliveryError } from '../services/email.service.js';
+import { logger } from '../utils/logger.js';
 
 function handleError(error: unknown, response: Parameters<RequestHandler>[1], next: Parameters<RequestHandler>[2]) {
   if (error instanceof ZodError) {
     response.status(422).json({ success: false, message: 'Datos invalidos', error: { code: 'VALIDATION_ERROR', details: error.issues } });
   } else if (error instanceof CoreError) {
     response.status(error.code === 'NOT_FOUND' ? 404 : 422).json({ success: false, message: error.message, error: { code: error.code, details: [] } });
+  } else if (error instanceof EmailDeliveryError) {
+    logger.error({ err: error, requestId: response.getHeader('x-request-id') }, 'Unable to notify users about role permission changes');
+    response.status(503).json({ success: false, message: 'El rol se actualizó, pero no se pudieron enviar todas las notificaciones por correo.', error: { code: 'ROLE_NOTIFICATION_FAILED', details: [] } });
   } else {
     next(error);
   }

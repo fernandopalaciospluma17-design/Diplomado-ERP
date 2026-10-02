@@ -1,10 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Linking, Platform, SafeAreaView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Sidebar, type NodaraModule } from './src/components/Sidebar';
 import { colors } from './src/design/tokens';
 import { ApiError, apiRequest, clearSessionToken, readSessionToken, writeSessionToken } from './src/lib/api';
 import { DashboardScreen } from './src/screens/DashboardScreen';
+import { ConfirmAccountScreen } from './src/screens/ConfirmAccountScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import type { CurrentUser, DashboardSummary } from './src/types';
 
@@ -26,6 +27,7 @@ export default function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [token, setToken] = useState<string | null>(null);
+  const [confirmationToken, setConfirmationToken] = useState<string | null>(null);
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [selectedModule, setSelectedModule] = useState('Resumen');
@@ -76,8 +78,6 @@ export default function App() {
       } else {
         setError('No se pudo restaurar la sesión. Intenta iniciar sesión nuevamente.');
       }
-    } finally {
-      setIsBooting(false);
     }
   };
 
@@ -128,7 +128,25 @@ export default function App() {
 
   useEffect(() => {
     void checkApi();
-    void restore();
+    void (async () => {
+      try {
+        const initialUrl = await Linking.getInitialURL();
+        const linkToken = initialUrl ? new URL(initialUrl).searchParams.get('confirm') : null;
+        if (linkToken) {
+          setConfirmationToken(linkToken);
+          if (Platform.OS === 'web' && typeof window !== 'undefined') {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } else {
+          await restore();
+        }
+      } catch {
+        setError('No se pudo procesar el enlace. Intenta abrirlo nuevamente.');
+        await restore();
+      } finally {
+        setIsBooting(false);
+      }
+    })();
   }, []);
 
   if (isBooting) {
@@ -137,6 +155,15 @@ export default function App() {
         <ActivityIndicator color={colors.signature} size="large" />
         <Text style={styles.bootText}>Iniciando Nodara ERP...</Text>
       </View>
+    );
+  }
+
+  if (confirmationToken) {
+    return (
+      <>
+        <ConfirmAccountScreen token={confirmationToken} onReturnToLogin={() => setConfirmationToken(null)} />
+        <StatusBar style="light" />
+      </>
     );
   }
 

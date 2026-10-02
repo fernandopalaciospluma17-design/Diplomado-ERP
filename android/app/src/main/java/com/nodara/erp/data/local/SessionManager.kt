@@ -27,7 +27,7 @@ class SessionManager(context: Context) {
     companion object {
         private const val KEY_TOKEN = "jwt_token"
         private const val KEY_BASE_URL = "base_url"
-        const val DEFAULT_BASE_URL = "http://10.0.2.2:3000/api/v1/"
+        const val DEFAULT_BASE_URL = "https://diplomado-erp.onrender.com/api/v1/"
     }
 
     fun saveToken(token: String) {
@@ -49,6 +49,11 @@ class SessionManager(context: Context) {
     }
 
     fun getBaseUrl(): String {
-        return prefs.getString(KEY_BASE_URL, DEFAULT_BASE_URL) ?: DEFAULT_BASE_URL
+        val saved = prefs.getString(KEY_BASE_URL, null)
+        if (saved == null || saved.contains("10.0.2.2") || saved.contains("192.168.") || saved.contains("192.166.")) {
+            saveBaseUrl(DEFAULT_BASE_URL)
+            return DEFAULT_BASE_URL
+        }
+        return saved
     }
 }
