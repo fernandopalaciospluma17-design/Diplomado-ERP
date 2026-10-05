@@ -15,8 +15,10 @@ export function SalesScreen({ token, onError }: { token: string; onError: (msg: 
   // Form Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [customerName, setCustomerName] = useState('');
-  const [sku, setSku] = useState('');
+  const [saleNumber, setSaleNumber] = useState('');
+  const [customerCode, setCustomerCode] = useState('MOSTRADOR');
+  const [warehouseCode, setWarehouseCode] = useState('MAIN');
+  const [productCode, setProductCode] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [unitPrice, setUnitPrice] = useState('150');
 
@@ -38,21 +40,26 @@ export function SalesScreen({ token, onError }: { token: string; onError: (msg: 
   }, []);
 
   const handleCreateSale = async () => {
-    if (!sku.trim() || !quantity.trim()) {
-      onError('Especifica SKU y cantidad.');
+    if (!productCode.trim() || !quantity.trim()) {
+      onError('Especifica producto y cantidad.');
       return;
     }
     setIsSubmitting(true);
     try {
+      const normalizedSaleNumber = (saleNumber.trim() || `SALE-${Date.now()}`).toUpperCase();
       await apiRequest(
         '/api/v1/sales',
         {
           method: 'POST',
           body: JSON.stringify({
-            customerName: customerName.trim() || 'Cliente Mostrador',
-            items: [
+            saleNumber: normalizedSaleNumber,
+            customerCode: customerCode.trim().toUpperCase() || 'MOSTRADOR',
+            warehouseCode: warehouseCode.trim().toUpperCase() || 'MAIN',
+            discountBps: 0,
+            taxBps: 0,
+            lines: [
               {
-                sku: sku.trim().toUpperCase(),
+                productCode: productCode.trim().toUpperCase(),
                 quantity: Number(quantity),
                 unitPriceCents: Math.round(parseFloat(unitPrice) * 100),
               },
@@ -62,9 +69,12 @@ export function SalesScreen({ token, onError }: { token: string; onError: (msg: 
         token
       );
       setIsModalOpen(false);
-      setCustomerName('');
-      setSku('');
+      setSaleNumber('');
+      setCustomerCode('MOSTRADOR');
+      setWarehouseCode('MAIN');
+      setProductCode('');
       setQuantity('1');
+      setUnitPrice('150');
       await loadSales();
     } catch (err) {
       onError(err instanceof ApiError ? err.message : 'Error al registrar venta');
@@ -101,8 +111,10 @@ export function SalesScreen({ token, onError }: { token: string; onError: (msg: 
       <DataTable columns={columns} data={sales} isLoading={isLoading} />
 
       <Modal onClose={() => setIsModalOpen(false)} title="Nueva Cotización / Pedido de Venta" visible={isModalOpen}>
-        <Input label="Cliente" onChangeText={setCustomerName} placeholder="Nombre del cliente" value={customerName} />
-        <Input label="SKU del producto *" onChangeText={setSku} placeholder="EJ. SKU-001" value={sku} />
+        <Input label="Folio de venta" onChangeText={setSaleNumber} placeholder="SALE-001" value={saleNumber} />
+        <Input label="Código del cliente" onChangeText={setCustomerCode} placeholder="CLI-001" value={customerCode} />
+        <Input label="Código del almacén" onChangeText={setWarehouseCode} placeholder="MAIN" value={warehouseCode} />
+        <Input label="Código del producto *" onChangeText={setProductCode} placeholder="PROD-001" value={productCode} />
         <Input keyboardType="numeric" label="Cantidad *" onChangeText={setQuantity} placeholder="1" value={quantity} />
         <Input keyboardType="numeric" label="Precio Venta ($) *" onChangeText={setUnitPrice} placeholder="150.00" value={unitPrice} />
         <View style={styles.modalActions}>

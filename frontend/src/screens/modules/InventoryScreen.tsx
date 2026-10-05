@@ -18,10 +18,11 @@ export function InventoryScreen({ token, onError }: { token: string; onError: (m
   // Forms
   const [isAdjModalOpen, setIsAdjModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [adjSku, setAdjSku] = useState('');
+  const [adjProductCode, setAdjProductCode] = useState('');
   const [adjWarehouse, setAdjWarehouse] = useState('MAIN');
   const [adjType, setAdjType] = useState<'IN' | 'OUT' | 'ADJUSTMENT'>('IN');
   const [adjQty, setAdjQty] = useState('');
+  const [adjReason, setAdjReason] = useState('');
   const [adjRef, setAdjRef] = useState('');
 
   const loadData = async (activeTab = tab) => {
@@ -43,8 +44,8 @@ export function InventoryScreen({ token, onError }: { token: string; onError: (m
   }, [tab]);
 
   const handlePostMovement = async () => {
-    if (!adjSku.trim() || !adjQty.trim() || isNaN(Number(adjQty))) {
-      onError('Especifica SKU y cantidad numérica válida.');
+    if (!adjProductCode.trim() || !adjQty.trim() || isNaN(Number(adjQty))) {
+      onError('Especifica el código del producto y una cantidad válida.');
       return;
     }
     setIsSubmitting(true);
@@ -54,18 +55,20 @@ export function InventoryScreen({ token, onError }: { token: string; onError: (m
         {
           method: 'POST',
           body: JSON.stringify({
-            sku: adjSku.trim().toUpperCase(),
+            productCode: adjProductCode.trim().toUpperCase(),
             warehouseCode: adjWarehouse.trim().toUpperCase() || 'MAIN',
             type: adjType,
             quantity: Number(adjQty),
+            reason: adjReason.trim() || 'AJUSTE MANUAL',
             reference: adjRef.trim() || undefined,
           }),
         },
         token
       );
       setIsAdjModalOpen(false);
-      setAdjSku('');
+      setAdjProductCode('');
       setAdjQty('');
+      setAdjReason('');
       setAdjRef('');
       await loadData(tab);
     } catch (err) {
@@ -76,7 +79,7 @@ export function InventoryScreen({ token, onError }: { token: string; onError: (m
   };
 
   const stockColumns: ColumnDef<Record<string, unknown>>[] = [
-    { key: 'sku', header: 'SKU / CÓDIGO', width: 140 },
+    { key: 'productCode', header: 'CÓDIGO', width: 140, render: (r) => <Text>{String(r.productCode ?? r.sku ?? '—')}</Text> },
     { key: 'warehouseCode', header: 'ALMACÉN', width: 110 },
     { key: 'quantityOnHand', header: 'EN EXISTENCIA', align: 'right', render: (r) => <Text style={styles.qtyText}>{String(r.quantityOnHand ?? 0)}</Text> },
     { key: 'quantityReserved', header: 'RESERVADO', align: 'right', render: (r) => <Text style={styles.mutedText}>{String(r.quantityReserved ?? 0)}</Text> },
@@ -85,7 +88,7 @@ export function InventoryScreen({ token, onError }: { token: string; onError: (m
 
   const movementColumns: ColumnDef<Record<string, unknown>>[] = [
     { key: 'createdAt', header: 'FECHA', width: 150, render: (r) => <Text style={styles.dateText}>{String(r.createdAt ?? '').slice(0, 10)}</Text> },
-    { key: 'sku', header: 'SKU', width: 120 },
+    { key: 'productCode', header: 'CÓDIGO', width: 120, render: (r) => <Text>{String(r.productCode ?? r.sku ?? '—')}</Text> },
     { key: 'type', header: 'TIPO', align: 'center', render: (r) => <Badge label={String(r.type ?? 'IN')} /> },
     { key: 'quantity', header: 'CANTIDAD', align: 'right', render: (r) => <Text style={styles.qtyText}>{String(r.quantity ?? 0)}</Text> },
     { key: 'warehouseCode', header: 'ALMACÉN', width: 100 },
@@ -113,10 +116,11 @@ export function InventoryScreen({ token, onError }: { token: string; onError: (m
       />
 
       <Modal onClose={() => setIsAdjModalOpen(false)} title="Registrar movimiento de stock" visible={isAdjModalOpen}>
-        <Input label="SKU / Código de producto *" onChangeText={setAdjSku} placeholder="EJ. SKU-001" value={adjSku} />
+        <Input label="Código de producto *" onChangeText={setAdjProductCode} placeholder="EJ. PROD-001" value={adjProductCode} />
         <Input label="Código de almacén *" onChangeText={setAdjWarehouse} placeholder="MAIN" value={adjWarehouse} />
         <Input label="Cantidad *" keyboardType="numeric" onChangeText={setAdjQty} placeholder="1" value={adjQty} />
-        <Input label="Referencia / Motivo" onChangeText={setAdjRef} placeholder="Ajuste o nota de entrada" value={adjRef} />
+        <Input label="Motivo *" onChangeText={setAdjReason} placeholder="Ajuste de inventario" value={adjReason} />
+        <Input label="Referencia" onChangeText={setAdjRef} placeholder="Nota o documento" value={adjRef} />
         <View style={styles.modalActions}>
           <Button label="Cancelar" onPress={() => setIsAdjModalOpen(false)} variant="outline" />
           <Button isLoading={isSubmitting} label="Registrar" onPress={() => void handlePostMovement()} />

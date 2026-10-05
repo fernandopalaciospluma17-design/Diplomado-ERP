@@ -18,16 +18,47 @@ export function MasterDataScreen({ token, onError, permissions }: { token: strin
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [categoryOptions, setCategoryOptions] = useState<Array<{ id: string; code: string; name: string }>>([]);
+  const [unitOptions, setUnitOptions] = useState<Array<{ id: string; code: string; name: string }>>([]);
 
   // Form Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formCode, setFormCode] = useState('');
   const [formName, setFormName] = useState('');
-  const [formCategory, setFormCategory] = useState('');
+  const [formCategoryId, setFormCategoryId] = useState('');
+  const [formUnitId, setFormUnitId] = useState('');
   const [formPriceCents, setFormPriceCents] = useState('');
   const [formCostCents, setFormCostCents] = useState('');
   const canCreateProduct = permissions.includes('master-data.products.create');
+
+  const readNestedValue = (row: Record<string, unknown>, key: string) => {
+    const attributes = row.attributes as Record<string, unknown> | undefined;
+    return attributes && Object.prototype.hasOwnProperty.call(attributes, key) ? attributes[key] : row[key];
+  };
+
+  const loadReferenceOptions = async () => {
+    const [categoriesResponse, unitsResponse] = await Promise.all([
+      apiRequest<PaginatedResponse<Record<string, unknown>> | Record<string, unknown>[]>('/api/v1/master-data/categories?page=1&limit=100', {}, token),
+      apiRequest<PaginatedResponse<Record<string, unknown>> | Record<string, unknown>[]>('/api/v1/master-data/units?page=1&limit=100', {}, token)
+    ]);
+
+    const normalizeOptions = (response: PaginatedResponse<Record<string, unknown>> | Record<string, unknown>[]) => {
+      const items = Array.isArray(response) ? response : response.items ?? [];
+      return items.map((item) => ({
+        id: String((item.id ?? item._id ?? '')),
+        code: String(item.code ?? ''),
+        name: String(item.name ?? item.code ?? 'Sin nombre')
+      })).filter((item) => item.id);
+    };
+
+    const categoryItems = normalizeOptions(categoriesResponse);
+    const unitItems = normalizeOptions(unitsResponse);
+    setCategoryOptions(categoryItems);
+    setUnitOptions(unitItems);
+    if (!formCategoryId && categoryItems[0]) setFormCategoryId(categoryItems[0].id);
+    if (!formUnitId && unitItems[0]) setFormUnitId(unitItems[0].id);
+  };
 
   const loadData = async (activeTab = tab, activePage = page) => {
     setIsLoading(true);
@@ -53,6 +84,10 @@ export function MasterDataScreen({ token, onError, permissions }: { token: strin
       } else {
         setData([]);
       }
+
+      if (activeTab === 'products') {
+        await loadReferenceOptions();
+      }
     } catch (err) {
       onError(err instanceof ApiError ? err.message : 'Error al cargar datos maestros');
       setData([]);
@@ -70,8 +105,18 @@ export function MasterDataScreen({ token, onError, permissions }: { token: strin
       onError('El código y nombre son obligatorios.');
       return;
     }
+    if (!formCategoryId.trim() || !formUnitId.trim()) {
+      onError('Selecciona una categoría y una unidad válidas.');
+      return;
+    }
     setIsSubmitting(true);
     try {
+      const parseMoney = (value: string) => {
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed)) return 0;
+        return Math.round(parsed * 100);
+      };
+
       await apiRequest(
         '/api/v1/master-data/products',
         {
@@ -79,10 +124,18 @@ export function MasterDataScreen({ token, onError, permissions }: { token: strin
           body: JSON.stringify({
             code: formCode.trim().toUpperCase(),
             name: formName.trim(),
-            category: formCategory.trim() || undefined,
-            priceCents: formPriceCents ? Math.round(parseFloat(formPriceCents) * 100) : 0,
-            costCents: formCostCents ? Math.round(parseFloat(formCostCents) * 100) : 0,
             status: 'ACTIVE',
+            attributes: {
+              categoryId: formCategoryId.trim(),
+              unitId: formUnitId.trim(),
+              priceCents: parseMoney(formPriceCents),
+              costCents: parseMoney(formCostCents),
+              trackInventory: true,
+              trackLots: false,
+              trackSerials: false,
+              minStock: 0,
+              reorderPoint: 0,
+            },
           }),
         },
         token
@@ -90,7 +143,8 @@ export function MasterDataScreen({ token, onError, permissions }: { token: strin
       setIsModalOpen(false);
       setFormCode('');
       setFormName('');
-      setFormCategory('');
+      setFormCategoryId(categoryOptions[0]?.id ?? '');
+      setFormUnitId(unitOptions[0]?.id ?? '');
       setFormPriceCents('');
       setFormCostCents('');
       await loadData(tab, 1);
@@ -101,17 +155,24 @@ export function MasterDataScreen({ token, onError, permissions }: { token: strin
     }
   };
 
+  const categoryMap = new Map(categoryOptions.map((category) => [category.id, category.name]));
+  const unitMap = new Map(unitOptions.map((unit) => [unit.id, unit.name]));
   const productColumns: ColumnDef<Record<string, unknown>>[] = [
     { key: 'code', header: 'CÓDIGO', width: 120 },
     { key: 'name', header: 'NOMBRE', width: 220 },
-    { key: 'category', header: 'CATEGORÍA', width: 140 },
+    {
+      key: 'categoryId',
+      header: 'CATEGORÍA',
+      width: 140,
+      render: (row) => <Text>{categoryMap.get(String(readNestedValue(row, 'categoryId') ?? '')) ?? 'Sin categoría'}</Text>,
+    },
     {
       key: 'priceCents',
       header: 'PRECIO',
       align: 'right',
       render: (row) => (
         <Text style={styles.money}>
-          ${((Number(row.priceCents) || 0) / 100).toFixed(2)}
+          ${((Number(readNestedValue(row, 'priceCents')) || 0) / 100).toFixed(2)}
         </Text>
       ),
     },
@@ -121,9 +182,15 @@ export function MasterDataScreen({ token, onError, permissions }: { token: strin
       align: 'right',
       render: (row) => (
         <Text style={styles.money}>
-          ${((Number(row.costCents) || 0) / 100).toFixed(2)}
+          ${((Number(readNestedValue(row, 'costCents')) || 0) / 100).toFixed(2)}
         </Text>
       ),
+    },
+    {
+      key: 'unitId',
+      header: 'UNIDAD',
+      width: 120,
+      render: (row) => <Text>{unitMap.get(String(readNestedValue(row, 'unitId') ?? '')) ?? 'Sin unidad'}</Text>,
     },
     { key: 'status', header: 'ESTADO', align: 'center', render: (row) => <Badge label={String(row.status ?? 'ACTIVE')} /> },
   ];
@@ -176,7 +243,8 @@ export function MasterDataScreen({ token, onError, permissions }: { token: strin
         <Input label="Nombre *" onChangeText={setFormName} placeholder="Nombre completo" value={formName} />
         {tab === 'products' ? (
           <>
-            <Input label="Categoría" onChangeText={setFormCategory} placeholder="Ej. Electrónica" value={formCategory} />
+            <Input label="ID de categoría *" onChangeText={setFormCategoryId} placeholder="507f1f77bcf86cd799439011" value={formCategoryId} />
+            <Input label="ID de unidad *" onChangeText={setFormUnitId} placeholder="507f1f77bcf86cd799439012" value={formUnitId} />
             <Input keyboardType="numeric" label="Precio ($)" onChangeText={setFormPriceCents} placeholder="0.00" value={formPriceCents} />
             <Input keyboardType="numeric" label="Costo ($)" onChangeText={setFormCostCents} placeholder="0.00" value={formCostCents} />
           </>

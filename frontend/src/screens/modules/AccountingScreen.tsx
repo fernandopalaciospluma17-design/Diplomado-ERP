@@ -18,6 +18,8 @@ export function AccountingScreen({ token, onError }: { token: string; onError: (
   // Form Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [entryNumber, setEntryNumber] = useState('');
+  const [periodNumber, setPeriodNumber] = useState('');
   const [concept, setConcept] = useState('');
   const [debitAccount, setDebitAccount] = useState('1010');
   const [creditAccount, setCreditAccount] = useState('4010');
@@ -52,22 +54,28 @@ export function AccountingScreen({ token, onError }: { token: string; onError: (
     setIsSubmitting(true);
     try {
       const cents = Math.round(parseFloat(amount) * 100);
+      const normalizedEntryNumber = (entryNumber.trim() || `E-${Date.now()}`).toUpperCase();
+      const normalizedPeriodNumber = (periodNumber.trim() || new Date().getFullYear().toString()).toUpperCase();
       await apiRequest(
         '/api/v1/accounting/entries',
         {
           method: 'POST',
           body: JSON.stringify({
-            date: new Date().toISOString().slice(0, 10),
-            concept: concept.trim(),
+            entryNumber: normalizedEntryNumber,
+            periodNumber: normalizedPeriodNumber,
+            entryAt: new Date().toISOString(),
+            description: concept.trim(),
             lines: [
-              { accountCode: debitAccount.trim(), debitCents: cents, creditCents: 0 },
-              { accountCode: creditAccount.trim(), debitCents: 0, creditCents: cents },
+              { accountCode: debitAccount.trim().toUpperCase(), description: concept.trim(), debitCents: cents, creditCents: 0 },
+              { accountCode: creditAccount.trim().toUpperCase(), description: concept.trim(), debitCents: 0, creditCents: cents },
             ],
           }),
         },
         token
       );
       setIsModalOpen(false);
+      setEntryNumber('');
+      setPeriodNumber('');
       setConcept('');
       setAmount('1000');
       await loadData(tab);
@@ -121,6 +129,8 @@ export function AccountingScreen({ token, onError }: { token: string; onError: (
       <DataTable columns={trialColumns} data={data} isLoading={isLoading} />
 
       <Modal onClose={() => setIsModalOpen(false)} title="Nuevo Asiento Contable Manual" visible={isModalOpen}>
+        <Input label="Folio del asiento" onChangeText={setEntryNumber} placeholder="E-001" value={entryNumber} />
+        <Input label="Periodo contable" onChangeText={setPeriodNumber} placeholder="2026" value={periodNumber} />
         <Input label="Concepto / Descripción *" onChangeText={setConcept} placeholder="Poliza de ajuste o registro manual" value={concept} />
         <Input label="Cuenta Débito (Cargo) *" onChangeText={setDebitAccount} placeholder="1010" value={debitAccount} />
         <Input label="Cuenta Crédito (Abono) *" onChangeText={setCreditAccount} placeholder="4010" value={creditAccount} />

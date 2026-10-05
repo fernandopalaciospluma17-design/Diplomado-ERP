@@ -22,7 +22,7 @@ export function PosScreen({ token, onError }: { token: string; onError: (msg: st
 
   // Form Ticket
   const [activeSessionNum, setActiveSessionNum] = useState<string | null>(null);
-  const [sku, setSku] = useState('');
+  const [productCode, setProductCode] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [priceCents, setPriceCents] = useState('100');
 
@@ -58,8 +58,9 @@ export function PosScreen({ token, onError }: { token: string; onError: (msg: st
         {
           method: 'POST',
           body: JSON.stringify({
+            sessionNumber: `POS-${Date.now()}`,
             terminalCode: terminalCode.trim().toUpperCase() || 'POS-01',
-            openingBalanceCents: Math.round(parseFloat(openingBalance) * 100),
+            openingCashCents: Math.round(parseFloat(openingBalance) * 100),
           }),
         },
         token
@@ -74,35 +75,46 @@ export function PosScreen({ token, onError }: { token: string; onError: (msg: st
   };
 
   const handleCreateTicket = async () => {
-    if (!activeSessionNum || !sku.trim()) {
-      onError('Abre una caja y especifica SKU.');
+    if (!activeSessionNum || !productCode.trim()) {
+      onError('Abre una caja y especifica el código del producto.');
       return;
     }
     setIsSubmitting(true);
     try {
-      const idempotencyKey = `POS-TICKET-${Date.now()}`;
+      const ticketNumber = `TICKET-${Date.now()}`;
+      const paymentNumber = `PAY-${Date.now()}`;
       await apiRequest(
         '/api/v1/pos/tickets',
         {
           method: 'POST',
-          headers: { 'Idempotency-Key': idempotencyKey },
           body: JSON.stringify({
+            ticketNumber,
             sessionNumber: activeSessionNum,
-            items: [
-              {
-                sku: sku.trim().toUpperCase(),
-                quantity: Number(quantity),
-                unitPriceCents: Math.round(parseFloat(priceCents) * 100),
-              },
-            ],
+            paymentNumber,
             paymentMethod: 'CASH',
-            amountPaidCents: Math.round(parseFloat(priceCents) * Number(quantity) * 100),
+            reference: 'Cobro POS',
+            sale: {
+              saleNumber: `SALE-${Date.now()}`,
+              customerCode: 'MOSTRADOR',
+              warehouseCode: 'MAIN',
+              discountBps: 0,
+              taxBps: 0,
+              lines: [
+                {
+                  productCode: productCode.trim().toUpperCase(),
+                  quantity: Number(quantity),
+                  unitPriceCents: Math.round(parseFloat(priceCents) * 100),
+                },
+              ],
+            },
           }),
         },
         token
       );
       setIsTicketModalOpen(false);
-      setSku('');
+      setProductCode('');
+      setQuantity('1');
+      setPriceCents('100');
       await loadSessions();
     } catch (err) {
       onError(err instanceof ApiError ? err.message : 'Error al emitir ticket de venta');
@@ -159,7 +171,7 @@ export function PosScreen({ token, onError }: { token: string; onError: (msg: st
       </Modal>
 
       <Modal onClose={() => setIsTicketModalOpen(false)} title={`Cobro Rápido - Caja ${activeSessionNum}`} visible={isTicketModalOpen}>
-        <Input label="SKU del producto *" onChangeText={setSku} placeholder="EJ. SKU-001" value={sku} />
+        <Input label="Código del producto *" onChangeText={setProductCode} placeholder="PROD-001" value={productCode} />
         <Input keyboardType="numeric" label="Cantidad *" onChangeText={setQuantity} value={quantity} />
         <Input keyboardType="numeric" label="Precio ($) *" onChangeText={setPriceCents} value={priceCents} />
         <View style={styles.modalActions}>

@@ -15,11 +15,12 @@ export function CrmScreen({ token, onError }: { token: string; onError: (msg: st
   // Form Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [leadNumber, setLeadNumber] = useState('');
   const [name, setName] = useState('');
   const [company, setCompany] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [valueCents, setValueCents] = useState('5000');
+  const [source, setSource] = useState('WEB');
 
   const loadLeads = async () => {
     setIsLoading(true);
@@ -50,21 +51,23 @@ export function CrmScreen({ token, onError }: { token: string; onError: (msg: st
         {
           method: 'POST',
           body: JSON.stringify({
+            leadNumber: (leadNumber.trim() || `LEAD-${Date.now()}`).toUpperCase(),
             name: name.trim(),
-            company: company.trim() || undefined,
+            companyName: company.trim() || undefined,
             email: email.trim() || undefined,
             phone: phone.trim() || undefined,
-            estimatedValueCents: valueCents ? Math.round(parseFloat(valueCents) * 100) : 0,
-            status: 'NEW',
+            source: source.trim() || 'WEB',
           }),
         },
         token
       );
       setIsModalOpen(false);
+      setLeadNumber('');
       setName('');
       setCompany('');
       setEmail('');
       setPhone('');
+      setSource('WEB');
       await loadLeads();
     } catch (err) {
       onError(err instanceof ApiError ? err.message : 'Error al registrar prospecto');
@@ -96,11 +99,12 @@ export function CrmScreen({ token, onError }: { token: string; onError: (msg: st
       <DataTable columns={columns} data={leads} isLoading={isLoading} />
 
       <Modal onClose={() => setIsModalOpen(false)} title="Nuevo Prospecto de CRM" visible={isModalOpen}>
+        <Input label="Folio del lead" onChangeText={setLeadNumber} placeholder="LEAD-001" value={leadNumber} />
         <Input label="Nombre del contacto *" onChangeText={setName} placeholder="Ej. Juan Pérez" value={name} />
         <Input label="Empresa" onChangeText={setCompany} placeholder="Ej. Corporativo ABC" value={company} />
         <Input label="Correo electrónico" onChangeText={setEmail} placeholder="juan@abc.com" value={email} />
         <Input label="Teléfono" onChangeText={setPhone} placeholder="555-123-4567" value={phone} />
-        <Input keyboardType="numeric" label="Valor Estimado ($)" onChangeText={setValueCents} placeholder="5000.00" value={valueCents} />
+        <Input label="Fuente" onChangeText={setSource} placeholder="WEB" value={source} />
         <View style={styles.modalActions}>
           <Button label="Cancelar" onPress={() => setIsModalOpen(false)} variant="outline" />
           <Button isLoading={isSubmitting} label="Guardar prospecto" onPress={() => void handleCreateLead()} />

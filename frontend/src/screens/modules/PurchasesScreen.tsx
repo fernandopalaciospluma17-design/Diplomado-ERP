@@ -15,8 +15,10 @@ export function PurchasesScreen({ token, onError }: { token: string; onError: (m
   // Form Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [supplierName, setSupplierName] = useState('');
-  const [sku, setSku] = useState('');
+  const [purchaseNumber, setPurchaseNumber] = useState('');
+  const [supplierCode, setSupplierCode] = useState('PROV-GENERAL');
+  const [warehouseCode, setWarehouseCode] = useState('MAIN');
+  const [productCode, setProductCode] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [unitPrice, setUnitPrice] = useState('100');
 
@@ -38,23 +40,26 @@ export function PurchasesScreen({ token, onError }: { token: string; onError: (m
   }, []);
 
   const handleCreatePurchase = async () => {
-    if (!sku.trim() || !quantity.trim()) {
-      onError('Especifica SKU y cantidad.');
+    if (!productCode.trim() || !quantity.trim()) {
+      onError('Especifica producto y cantidad.');
       return;
     }
     setIsSubmitting(true);
     try {
+      const normalizedPurchaseNumber = (purchaseNumber.trim() || `PUR-${Date.now()}`).toUpperCase();
       await apiRequest(
         '/api/v1/purchases',
         {
           method: 'POST',
           body: JSON.stringify({
-            supplierName: supplierName.trim() || 'Proveedor General',
-            items: [
+            purchaseNumber: normalizedPurchaseNumber,
+            supplierCode: supplierCode.trim().toUpperCase() || 'PROV-GENERAL',
+            warehouseCode: warehouseCode.trim().toUpperCase() || 'MAIN',
+            lines: [
               {
-                sku: sku.trim().toUpperCase(),
+                productCode: productCode.trim().toUpperCase(),
                 quantity: Number(quantity),
-                unitPriceCents: Math.round(parseFloat(unitPrice) * 100),
+                unitCostCents: Math.round(parseFloat(unitPrice) * 100),
               },
             ],
           }),
@@ -62,9 +67,12 @@ export function PurchasesScreen({ token, onError }: { token: string; onError: (m
         token
       );
       setIsModalOpen(false);
-      setSupplierName('');
-      setSku('');
+      setPurchaseNumber('');
+      setSupplierCode('PROV-GENERAL');
+      setWarehouseCode('MAIN');
+      setProductCode('');
       setQuantity('1');
+      setUnitPrice('100');
       await loadPurchases();
     } catch (err) {
       onError(err instanceof ApiError ? err.message : 'Error al registrar orden de compra');
@@ -101,8 +109,10 @@ export function PurchasesScreen({ token, onError }: { token: string; onError: (m
       <DataTable columns={columns} data={purchases} isLoading={isLoading} />
 
       <Modal onClose={() => setIsModalOpen(false)} title="Nueva Orden de Compra" visible={isModalOpen}>
-        <Input label="Proveedor" onChangeText={setSupplierName} placeholder="Nombre del proveedor" value={supplierName} />
-        <Input label="SKU del producto *" onChangeText={setSku} placeholder="EJ. SKU-001" value={sku} />
+        <Input label="Folio de compra" onChangeText={setPurchaseNumber} placeholder="PUR-001" value={purchaseNumber} />
+        <Input label="Código del proveedor" onChangeText={setSupplierCode} placeholder="PROV-001" value={supplierCode} />
+        <Input label="Código del almacén" onChangeText={setWarehouseCode} placeholder="MAIN" value={warehouseCode} />
+        <Input label="Código del producto *" onChangeText={setProductCode} placeholder="PROD-001" value={productCode} />
         <Input keyboardType="numeric" label="Cantidad *" onChangeText={setQuantity} placeholder="1" value={quantity} />
         <Input keyboardType="numeric" label="Precio Unitario ($) *" onChangeText={setUnitPrice} placeholder="100.00" value={unitPrice} />
         <View style={styles.modalActions}>
