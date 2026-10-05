@@ -46,16 +46,11 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Surface(
-                color = PaperWhite,
-                shape = MaterialTheme.shapes.small
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.nodara_logo),
-                    contentDescription = "Logo de Nodara ERP",
-                    modifier = Modifier.width(224.dp).height(67.dp)
-                )
-            }
+            Image(
+                painter = painterResource(R.drawable.nodara_logo_light),
+                contentDescription = "Logo de Nodara ERP",
+                modifier = Modifier.width(224.dp).height(67.dp)
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Tu negocio, en una sola vista.",
