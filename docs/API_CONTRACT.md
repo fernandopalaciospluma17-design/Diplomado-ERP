@@ -13,6 +13,10 @@ Base: `/api/v1`. Respuestas: `{ success, message, data }`; errores: `{ success:f
 | GET `/auth/me` | Sesion valida | Perfil actual |
 | GET `/auth/users` | `platform.users.read` | Lista usuarios de empresa |
 | POST `/auth/users` | `platform.users.create` | Crea usuario en empresa/sucursal del actor |
+| POST `/auth/users/:userId/resend-invitation` | `platform.users.create` | Reenvía la invitación a una cuenta pendiente |
+| POST `/auth/confirm-account` | Publico | Confirma la cuenta invitada y establece la contraseña |
+| GET `/core/roles` | `platform.roles.read` | Lista roles de la empresa actual |
+| DELETE `/core/sessions/current` | Sesion valida | Revoca solo la sesión actual |
 | GET `/catalogs/:kind` | `master-data.catalogs.read` | Lista catalogo (6 kinds) |
 | POST `/catalogs/:kind` | `master-data.catalogs.create` | Alta catalogo |
 | PATCH `/catalogs/:kind/:code` | `master-data.catalogs.update` | Actualiza catalogo |

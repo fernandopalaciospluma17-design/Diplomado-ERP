@@ -1,6 +1,6 @@
 # Roadmap ERP
 
-El avance respeta el orden de fases solicitado. Estado actualizado al 2026-09-24.
+El avance respeta el orden de fases solicitado. Estado actualizado al 2026-10-05.
 
 | Fase | Alcance | Estado actual | Siguiente salida |
 |---|---|---|---|
@@ -14,8 +14,8 @@ El avance respeta el orden de fases solicitado. Estado actualizado al 2026-09-24
 | 7 CRM/POS | Pipeline y ciclo de caja/ticket | Gate integrado de sesión, ticket, venta, cobro y cierre POS pasa en Mongo replica set; CRM conversión y reembolsos POS siguen pendientes | Completar ciclo CRM/POS y pruebas de concurrencia |
 | 8 RRHH | Empleado, estructura, asistencia, vacaciones, nómina | Empleados, ausencias y asistencia implementadas y auditadas en Mongo; nómina pendiente de política fiscal | Completar departamentos, vacaciones avanzadas y nómina definida |
 | 9 Analytics/BI | KPIs y reportes | Resumen con filtros y señal de conciliación del ledger | Reconciliación por documento, exportación y KPIs ampliados |
-| 10 Frontend multiplataforma | Web y mobile | Auth, sesión persistida, dashboard, módulos y expiración 401 | CRUD, selección de sucursal, E2E y accesibilidad ampliada |
-| 11 QA/seguridad/producción | Pruebas, hardening y operación | Readiness, redacción, guardas de producción, auditoría y runbook | Integración Mongo, E2E, backups/restore y monitoreo |
+| 10 Frontend multiplataforma | Web y mobile | Auth, sesión persistida, dashboard, módulos por permisos, administración de usuarios/invitaciones y revocación web/Android | E2E autenticado, selección de sucursal y accesibilidad ampliada |
+| 11 QA/seguridad/producción | Pruebas, hardening y operación | Typecheck, suite local, build backend/web, compilación Kotlin, readiness y CORS productivos comprobados; tests JVM Android bloqueados por JDK 26 | Verificar Resend en producción, respaldos/restauración, monitoreo y vulnerabilidades del toolchain |
 
 ## Secuencia
 

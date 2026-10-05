@@ -19,7 +19,7 @@ export function LoginScreen({ email, password, error, isSubmitting, onEmailChang
             {error ? <Text accessibilityLiveRegion="polite" style={styles.error}>{error}</Text> : null}
             <Pressable accessibilityRole="button" disabled={isSubmitting} onPress={onSubmit} style={[styles.submit, isSubmitting && styles.disabled]}>{isSubmitting ? <ActivityIndicator color={colors.ink} /> : <Text style={styles.submitText}>Entrar a Nodara</Text>}</Pressable>
           </View>
-          <Text style={styles.help}>Tu sesión se valida contra el backend empresarial y se conserva de forma segura en este dispositivo.</Text>
+          <Text style={styles.help}>Tu sesión se valida contra el backend empresarial y se conserva en este dispositivo.</Text>
         </View>
       </View>
     </KeyboardAvoidingView>

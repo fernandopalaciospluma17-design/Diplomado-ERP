@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Platform, SafeAreaView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Sidebar, type NodaraModule } from './src/components/Sidebar';
 import { colors } from './src/design/tokens';
-import { ApiError, apiRequest, clearSessionToken, readSessionToken, writeSessionToken } from './src/lib/api';
+import { ApiError, apiRequest, clearSessionToken, readSessionToken, subscribeToUnauthorized, writeSessionToken } from './src/lib/api';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { ConfirmAccountScreen } from './src/screens/ConfirmAccountScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
@@ -11,14 +11,15 @@ import type { CurrentUser, DashboardSummary } from './src/types';
 
 const modules: NodaraModule[] = [
   { label: 'Resumen', shortLabel: 'IN', endpoint: null },
-  { label: 'Maestros', shortLabel: 'MS', endpoint: '/api/v1/master-data/products' },
-  { label: 'Inventario', shortLabel: 'IV', endpoint: '/api/v1/inventory' },
-  { label: 'Ventas', shortLabel: 'VT', endpoint: '/api/v1/sales' },
-  { label: 'Compras', shortLabel: 'CP', endpoint: '/api/v1/purchases' },
-  { label: 'Finanzas', shortLabel: 'FN', endpoint: '/api/v1/accounting/trial-balance' },
-  { label: 'CRM', shortLabel: 'CR', endpoint: '/api/v1/crm/leads' },
-  { label: 'POS', shortLabel: 'PS', endpoint: '/api/v1/pos/sessions' },
-  { label: 'RRHH', shortLabel: 'RH', endpoint: '/api/v1/hr/employees' },
+  { label: 'Maestros', shortLabel: 'MS', endpoint: '/api/v1/master-data/products', permission: 'master-data.products.read' },
+  { label: 'Inventario', shortLabel: 'IV', endpoint: '/api/v1/inventory', permission: 'inventory.stock.read' },
+  { label: 'Ventas', shortLabel: 'VT', endpoint: '/api/v1/sales', permission: 'sales.sale.read' },
+  { label: 'Compras', shortLabel: 'CP', endpoint: '/api/v1/purchases', permission: 'purchases.purchase.read' },
+  { label: 'Finanzas', shortLabel: 'FN', endpoint: '/api/v1/accounting/trial-balance', permission: 'finance.report.read' },
+  { label: 'CRM', shortLabel: 'CR', endpoint: '/api/v1/crm/leads', permission: 'crm.lead.read' },
+  { label: 'POS', shortLabel: 'PS', endpoint: '/api/v1/pos/sessions', permission: 'pos.session.read' },
+  { label: 'RRHH', shortLabel: 'RH', endpoint: '/api/v1/hr/employees', permission: 'hr.employee.read' },
+  { label: 'Usuarios', shortLabel: 'US', endpoint: null, permission: 'platform.users.read' },
 ];
 
 export default function App() {
@@ -36,13 +37,21 @@ export default function App() {
   const [isBooting, setIsBooting] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const logout = async () => {
+  const logout = async (revokeRemote = true) => {
+    let revocationFailed = false;
+    if (revokeRemote && token) {
+      try {
+        await apiRequest('/api/v1/core/sessions/current', { method: 'DELETE' }, token, false);
+      } catch {
+        revocationFailed = true;
+      }
+    }
     await clearSessionToken();
     setToken(null);
     setUser(null);
     setSummary(null);
     setSelectedModule('Resumen');
-    setError(null);
+    setError(revocationFailed ? 'Se cerró la sesión en este dispositivo, pero no se pudo confirmar la revocación remota.' : null);
   };
 
   const checkApi = async () => {
@@ -62,7 +71,15 @@ export default function App() {
   const loadCurrentUser = async (accessToken: string) => {
     const data = await apiRequest<CurrentUser>('/api/v1/auth/me', {}, accessToken);
     setUser(data);
-    await loadDashboard(accessToken);
+    try {
+      await loadDashboard(accessToken);
+    } catch (dashboardError) {
+      setSummary(null);
+      if (dashboardError instanceof ApiError && dashboardError.status === 401) throw dashboardError;
+      setError(dashboardError instanceof ApiError
+        ? dashboardError.message
+        : 'No se pudo cargar el resumen. Puedes continuar usando los módulos autorizados.');
+    }
   };
 
   const restore = async () => {
@@ -74,7 +91,7 @@ export default function App() {
       }
     } catch (restoreError) {
       if (restoreError instanceof ApiError && restoreError.status === 401) {
-        await logout();
+        await logout(false);
       } else {
         setError('No se pudo restaurar la sesión. Intenta iniciar sesión nuevamente.');
       }
@@ -114,7 +131,7 @@ export default function App() {
       await loadCurrentUser(token);
     } catch (refreshError) {
       if (refreshError instanceof ApiError && refreshError.status === 401) {
-        await logout();
+        await logout(false);
       } else {
         setError(refreshError instanceof Error ? refreshError.message : 'No se pudieron actualizar los datos');
       }
@@ -148,6 +165,12 @@ export default function App() {
       }
     })();
   }, []);
+
+  useEffect(() => subscribeToUnauthorized(() => void logout(false)), []);
+
+  const visibleModules = modules.filter((module) =>
+    !module.permission || user?.permissions?.includes(module.permission)
+  );
 
   if (isBooting) {
     return (
@@ -189,7 +212,7 @@ export default function App() {
       <View style={[styles.shell, compact && styles.shellCompact]}>
         <Sidebar
           compact={compact}
-          modules={modules}
+          modules={visibleModules}
           onLogout={() => void logout()}
           onSelect={handleSelectModule}
           selected={selectedModule}
@@ -198,7 +221,7 @@ export default function App() {
         <DashboardScreen
           apiStatus={apiStatus}
           error={error}
-          modules={modules}
+          modules={visibleModules}
           onError={(msg) => setError(msg)}
           onLogout={() => void logout()}
           onRefresh={() => void refresh()}

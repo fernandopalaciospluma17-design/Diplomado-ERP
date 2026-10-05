@@ -3,7 +3,7 @@ import { BrandMark } from './BrandMark';
 import type { CurrentUser } from '../types';
 import { colors, radii, spacing, typography } from '../design/tokens';
 
-export type NodaraModule = { label: string; shortLabel: string; endpoint: string | null; section?: string };
+export type NodaraModule = { label: string; shortLabel: string; endpoint: string | null; permission?: string; section?: string };
 
 type SidebarProps = {
   modules: NodaraModule[];

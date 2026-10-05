@@ -11,6 +11,7 @@ import { AccountingScreen } from './modules/AccountingScreen';
 import { CrmScreen } from './modules/CrmScreen';
 import { PosScreen } from './modules/PosScreen';
 import { HrScreen } from './modules/HrScreen';
+import { UsersScreen } from './modules/UsersScreen';
 import type { CurrentUser, DashboardSummary, NotificationItem } from '../types';
 import { colors, radii, spacing, typography } from '../design/tokens';
 
@@ -134,7 +135,7 @@ export function DashboardScreen({
 
         {/* Dynamic Module Content */}
         {selectedModule === 'Maestros' ? (
-          <MasterDataScreen onError={onError} token={token} />
+          <MasterDataScreen onError={onError} permissions={user.permissions ?? []} token={token} />
         ) : selectedModule === 'Inventario' ? (
           <InventoryScreen onError={onError} token={token} />
         ) : selectedModule === 'Compras' ? (
@@ -149,6 +150,8 @@ export function DashboardScreen({
           <PosScreen onError={onError} token={token} />
         ) : selectedModule === 'RRHH' ? (
           <HrScreen onError={onError} token={token} />
+        ) : selectedModule === 'Usuarios' ? (
+          <UsersScreen branchName={user.branch?.name} companyName={user.company?.name} permissions={user.permissions ?? []} token={token} />
         ) : (
           /* Default: Resumen / Dashboard Overview */
           <>

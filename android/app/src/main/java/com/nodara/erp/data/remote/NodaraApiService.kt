@@ -15,6 +15,9 @@ interface NodaraApiService {
     @GET("auth/me")
     suspend fun getCurrentUser(): Response<ApiEnvelope<CurrentUser>>
 
+    @DELETE("core/sessions/current")
+    suspend fun revokeCurrentSession(): Response<ApiEnvelope<Map<String, Boolean>>>
+
     @GET("reports/summary")
     suspend fun getSummary(
         @Query("from") from: String? = null,

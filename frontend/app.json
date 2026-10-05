@@ -11,7 +11,7 @@
       "output": "single"
     },
     "android": {
-      "package": "com.example.erp"
+      "package": "com.nodara.erp"
     }
   }
 }

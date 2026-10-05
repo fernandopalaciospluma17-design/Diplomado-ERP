@@ -1,12 +1,12 @@
 # Handoff de implementación ERP
 
-Actualizado: 2026-09-24. Documento para que otro agente continúe el repositorio sin asumir que una fase está operativamente cerrada solo porque su código exista.
+Actualizado: 2026-10-05. Documento para continuar el repositorio sin asumir que una fase está operativamente cerrada solo porque su código exista.
 
 ## Resumen ejecutivo
 
-El backend ha avanzado desde una API básica a un monolito modular TypeScript/Express/Mongoose con aislamiento por empresa y sucursal, permisos persistidos, maestros tipados y flujos de inventario, compras, ventas, contabilidad, CRM y POS. La Fase 1 tuvo un smoke integration previo en un Mongo local desechable. En esta entrega el backend pasa typecheck y la suite local es de 11 archivos y 46 pruebas. La conexión a Mongo Atlas del proyecto agotó tiempo de espera en intentos anteriores; no existe evidencia de que las nuevas transacciones comerciales funcionen en la base objetivo.
+El backend es un monolito modular TypeScript/Express/Mongoose con aislamiento por empresa y sucursal, permisos persistidos, maestros tipados y flujos de inventario, compras, ventas, contabilidad, CRM, POS y RRHH. El frontend Expo comparte el backend entre Web y Android; incluye login, dashboard y administración de usuarios por invitación con selección de roles. La suite local más reciente pasa 55 pruebas y omite 2 pruebas de integración porque no hay Mongo local configurado. El build web, el build TypeScript y la compilación Kotlin pasan. El health y readiness públicos respondieron correctamente y el readiness confirmó conexión Mongo, pero no se hicieron operaciones de escritura en producción ni se probó el flujo de invitación.
 
-**Estado real:** las fases 0–7 tienen documentación y/o implementación sustancial. Ninguna de las fases 2–7 debe declararse operacionalmente cerrada hasta ejecutar sus gates en MongoDB replica set. Fases 8–11 continúan abiertas.
+**Estado real:** las fases 0–9 tienen documentación e implementación parcial. Los gates históricos transaccionales están documentados en `CLOSURE_AUDIT_2026-09-24.md`; no equivalen a certificación de migración ni de producción. Las fases 10–11 siguen abiertas por E2E autenticado, operación, respaldos/restauración, monitoreo y vulnerabilidades transitivas del toolchain.
 
 ## Cómo retomar
 
@@ -36,10 +36,10 @@ El backend ha avanzado desde una API básica a un monolito modular TypeScript/Ex
 | 5 Ventas | Cotización/pedido, entrega parcial con salida de inventario, venta, factura snapshot, pagos, devolución/reembolso y estados | `SALES.md`; falta gate Mongo; timbrado fiscal no implementado |
 | 6 Contabilidad | Plan de cuentas base, periodos sin solape/cierre, asientos balanceados idempotentes y balance de comprobación | `ACCOUNTING.md`; falta auto-posteo de eventos comerciales, reversas y caja/bancos |
 | 7 CRM/POS | Leads/oportunidades/actividades; sesiones de caja, tickets que crean venta/stock/pago en una transacción, conteo/cierre de efectivo | `CRM_POS.md`; falta probar en replica set y completar conversiones/reembolsos |
-| 8 RRHH | Sin módulo | Pendiente |
-| 9 BI | Reporte summary sencillo | Pendiente de KPIs/periodos/filtros reconciliables |
-| 10 Frontend | App Expo mínima, pantalla de health | Pendiente de login y módulos web/mobile |
-| 11 QA/operación | Pruebas unitarias/API parciales, rate limit, Helmet, validadores | Sin integración de las nuevas fases, E2E, escaneo de seguridad ni runbooks de producción |
+| 8 RRHH | Empleados, ausencias y asistencia | Nómina y reglas laborales/fiscales pendientes |
+| 9 BI | Resumen con filtros y señal de conciliación | KPIs y exportaciones ampliadas pendientes |
+| 10 Frontend/Android | Expo, autenticación, módulos por permisos, gestión de usuarios/invitaciones y almacenamiento seguro nativo | E2E autenticado, selector de sucursal y accesibilidad ampliada |
+| 11 QA/operación | Typecheck, suite, build backend/web, compilación Kotlin, readiness y CORS productivos comprobados | Tests JVM Android (JDK 26 incompatible), E2E por rol, Resend real, respaldos/restauración, monitoreo y vulnerabilidades transitivas |
 
 ## Pendientes en orden recomendado
 
@@ -57,7 +57,7 @@ El backend ha avanzado desde una API básica a un monolito modular TypeScript/Ex
 
 ### B. Fase 8 — RRHH
 
-Diseñar antes de implementar: empleado/persona, vínculo con usuario opcional, departamentos/puestos y vigencias, datos personales mínimos, permisos sensibles, asistencia/calendarios/zona horaria, vacaciones/ausencias con aprobación y auditoría. Nómina no debe calcularse sin definir país, moneda, reglas fiscales/laborales, periodo, redondeo, prestaciones y retenciones. Separar los datos sensibles con permisos específicos; añadir integración y controles de privacidad. No hay endpoints/modelos actuales de RRHH.
+Empleados, solicitudes de ausencia y asistencia ya existen con auditoría. Nómina no debe calcularse sin definir país, moneda, reglas fiscales/laborales, periodo, redondeo, prestaciones y retenciones. Siguen pendientes departamentos/puestos completos, vacaciones avanzadas y reglas de privacidad por dato sensible.
 
 ### C. Fase 9 — Analytics/BI
 
@@ -65,7 +65,7 @@ Sustituir el resumen actual por reportes definidos y conciliables: ventas netas 
 
 ### D. Fase 10 — Frontend
 
-La app Expo actual solo verifica health. Implementar navegación y sesión/login/logout, selección de empresa/sucursal disponible al usuario, manejo de expiración 401 y errores API, cliente HTTP tipado, accesibilidad y diseño adaptable Web/Android/iOS. Después priorizar pantallas Core/maestros, inventario, compras, ventas, CRM/POS y reportes con permisos en UI además de validación obligatoria del backend. Añadir pruebas de componentes y flujos E2E, evitar secretos en bundle.
+Web y Android ya comparten backend y muestran login/dashboard/módulos. La administración web consulta roles reales y crea usuarios con `name`, `email` y `roleId`; invitación, reenvío y confirmación usan el flujo existente. Faltan pruebas E2E, selector de sucursal y mayor cobertura de accesibilidad. La sesión Android usa almacenamiento cifrado y ambos clientes intentan revocar la sesión actual al cerrar sesión.
 
 ### E. Fase 11 — Producción y hardening
 
@@ -73,9 +73,12 @@ Completar tests de integración y concurrencia, E2E por rol, pruebas multiempres
 
 ## Evidencia local y límites
 
-- Comprobado en esta continuación: `npm.cmd run typecheck` y `npm.cmd test` aprobaron antes de añadir las dos pruebas POS; volver a ejecutar después de este commit. Suite observada entonces: 10 archivos / 44 pruebas; se añadieron 2 pruebas de validadores POS (esperado 11 / 46).
-- Build debe volver a ejecutarse como verificación antes del release.
-- El resultado de pruebas locales no demuestra que Mongo acepte transacciones; los servicios usan `withTransaction` y requieren replica set o cluster compatible.
+- 2026-10-05: `npm.cmd run typecheck`, `npm.cmd test` (55 aprobadas, 2 omitidas), `npm.cmd run build`, `npm.cmd --prefix frontend run build:web` y compilación `:app:compileDebugKotlin` en copia aislada aprobaron. `:app:testDebugUnitTest` llegó a compilar Kotlin, pero se bloqueó en `jlink` de JDK 26; no hay JDK 17 instalado para repetirlo.
+- Las dos pruebas omitidas requieren Mongo local; no se ejecutó el gate de escritura contra producción.
+- En producción, health respondió 200, readiness respondió 200 con Mongo conectado y OPTIONS de login respondió 204 con el origen Cloudflare permitido. La página Cloudflare mostró login y su bundle contiene el origen HTTPS de Render.
+- No se usó una cuenta real ni se intentó enviar invitaciones; las variables Resend no están definidas localmente. Confirmar su configuración y el dominio remitente verificado en Render/Resend.
+- `npm audit` reporta dependencias vulnerables del toolchain Expo/React Native; resolverlas requiere actualizaciones mayores coordinadas y no se aplicó `--force`.
+- Los gates históricos en Mongo replica set están registrados en `CLOSURE_AUDIT_2026-09-24.md`; no prueban datos ni operaciones de producción.
 - No revisar ni publicar `.env`; confirmar `.gitignore` antes de `git add`.
 - `ERP_ROADMAP.md` es el estado resumido; no interpretar “implementado” como “gate aprobado”. Actualizar QA y roadmap con evidencia reproducible al completar cada prueba.
 

@@ -1,5 +1,6 @@
 package com.nodara.erp.data.repository
 
+import com.nodara.erp.BuildConfig
 import com.google.gson.GsonBuilder
 import com.nodara.erp.data.local.SessionManager
 import com.nodara.erp.data.model.*
@@ -19,7 +20,8 @@ class NodaraRepository(private val sessionManager: SessionManager) {
 
     private fun createApiService(baseUrl: String): NodaraApiService {
         val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            redactHeader("Authorization")
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC else HttpLoggingInterceptor.Level.NONE
         }
         val client = OkHttpClient.Builder()
             .addInterceptor(AuthInterceptor(sessionManager))
@@ -63,6 +65,19 @@ class NodaraRepository(private val sessionManager: SessionManager) {
                 val errorBody = res.errorBody()?.string()
                 val message = parseErrorMessage(errorBody) ?: "Credenciales inválidas"
                 Result.failure(Exception(message))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun revokeCurrentSession(): Result<Unit> {
+        return try {
+            val response = api.revokeCurrentSession()
+            if (response.isSuccessful || response.code() == 401) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("No se pudo confirmar la revocación de la sesión remota"))
             }
         } catch (e: Exception) {
             Result.failure(e)

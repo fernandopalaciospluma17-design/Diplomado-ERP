@@ -11,7 +11,7 @@ import type { MasterProduct, PaginatedResponse } from '../../types';
 
 type Tab = 'products' | 'customers' | 'suppliers' | 'warehouses';
 
-export function MasterDataScreen({ token, onError }: { token: string; onError: (msg: string) => void }) {
+export function MasterDataScreen({ token, onError, permissions }: { token: string; onError: (msg: string) => void; permissions: string[] }) {
   const [tab, setTab] = useState<Tab>('products');
   const [data, setData] = useState<Record<string, unknown>[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +27,7 @@ export function MasterDataScreen({ token, onError }: { token: string; onError: (
   const [formCategory, setFormCategory] = useState('');
   const [formPriceCents, setFormPriceCents] = useState('');
   const [formCostCents, setFormCostCents] = useState('');
+  const canCreateProduct = permissions.includes('master-data.products.create');
 
   const loadData = async (activeTab = tab, activePage = page) => {
     setIsLoading(true);
@@ -126,29 +127,43 @@ export function MasterDataScreen({ token, onError }: { token: string; onError: (
     },
     { key: 'status', header: 'ESTADO', align: 'center', render: (row) => <Badge label={String(row.status ?? 'ACTIVE')} /> },
   ];
+  const columns: ColumnDef<Record<string, unknown>>[] = tab === 'products'
+    ? productColumns
+    : [
+        { key: 'code', header: 'CÓDIGO', width: 140 },
+        { key: 'name', header: 'NOMBRE', width: 220 },
+        ...(tab === 'warehouses'
+          ? [{ key: 'address', header: 'DIRECCIÓN', width: 240 }]
+          : [
+              { key: 'email', header: 'CORREO', width: 220 },
+              { key: 'phone', header: 'TELÉFONO', width: 150 },
+            ]),
+        { key: 'status', header: 'ESTADO', align: 'center', render: (row) => <Badge label={String(row.status ?? 'ACTIVE')} /> },
+      ];
+  const availableTabs = ([
+    { id: 'products', label: 'Productos' },
+    { id: 'customers', label: 'Clientes' },
+    { id: 'suppliers', label: 'Proveedores' },
+    { id: 'warehouses', label: 'Almacenes' },
+  ] as const).filter(({ id }) => permissions.includes(`master-data.${id}.read`));
 
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
         <View style={styles.tabs}>
-          <Pressable onPress={() => { setTab('products'); setPage(1); }} style={[styles.tab, tab === 'products' && styles.tabActive]}>
-            <Text style={[styles.tabText, tab === 'products' && styles.tabTextActive]}>Productos</Text>
-          </Pressable>
-          <Pressable onPress={() => { setTab('customers'); setPage(1); }} style={[styles.tab, tab === 'customers' && styles.tabActive]}>
-            <Text style={[styles.tabText, tab === 'customers' && styles.tabTextActive]}>Clientes</Text>
-          </Pressable>
-          <Pressable onPress={() => { setTab('suppliers'); setPage(1); }} style={[styles.tab, tab === 'suppliers' && styles.tabActive]}>
-            <Text style={[styles.tabText, tab === 'suppliers' && styles.tabTextActive]}>Proveedores</Text>
-          </Pressable>
-          <Pressable onPress={() => { setTab('warehouses'); setPage(1); }} style={[styles.tab, tab === 'warehouses' && styles.tabActive]}>
-            <Text style={[styles.tabText, tab === 'warehouses' && styles.tabTextActive]}>Almacenes</Text>
-          </Pressable>
+          {availableTabs.map(({ id, label }) => (
+            <Pressable key={id} onPress={() => { setTab(id); setPage(1); }} style={[styles.tab, tab === id && styles.tabActive]}>
+              <Text style={[styles.tabText, tab === id && styles.tabTextActive]}>{label}</Text>
+            </Pressable>
+          ))}
         </View>
-        <Button label="+ Nuevo registro" onPress={() => setIsModalOpen(true)} size="sm" />
+        {tab === 'products' && canCreateProduct
+          ? <Button label="+ Nuevo producto" onPress={() => setIsModalOpen(true)} size="sm" />
+          : null}
       </View>
 
       <DataTable
-        columns={productColumns}
+        columns={columns}
         data={data}
         isLoading={isLoading}
         onPageChange={(p) => setPage(p)}
@@ -156,7 +171,7 @@ export function MasterDataScreen({ token, onError }: { token: string; onError: (
         totalPages={totalPages}
       />
 
-      <Modal onClose={() => setIsModalOpen(false)} title={`Nuevo ${tab === 'products' ? 'Producto' : 'Registro'}`} visible={isModalOpen}>
+      <Modal onClose={() => setIsModalOpen(false)} title="Nuevo producto" visible={isModalOpen}>
         <Input label="Código *" onChangeText={setFormCode} placeholder="EJ. PROD-001" value={formCode} />
         <Input label="Nombre *" onChangeText={setFormName} placeholder="Nombre completo" value={formName} />
         {tab === 'products' ? (

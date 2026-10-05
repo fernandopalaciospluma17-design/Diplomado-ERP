@@ -1,6 +1,7 @@
 import type { RequestHandler } from 'express';
 import { ZodError } from 'zod';
 import { CoreError, createBranch, createRole, listAuditEvents, listBranches, listCompany, listConfiguration, listPermissions, listRoles, listSessions, revokeAllSessions, setConfiguration, updateBranch, updateCompany, updateRole } from '../services/core.service.js';
+import { revokeSession } from '../services/auth.service.js';
 import { createBranchSchema, createRoleSchema, setConfigurationSchema, updateBranchSchema, updateCompanySchema, updateRoleSchema } from '../validators/core.validators.js';
 import { EmailDeliveryError } from '../services/email.service.js';
 import { logger } from '../utils/logger.js';
@@ -48,5 +49,17 @@ export const updateRoleController: RequestHandler = async (req, res, next) => { 
 export const listConfigurationController: RequestHandler = async (req, res, next) => { try { if (!req.user?.companyId) { res.status(403).json({ success: false, message: 'Usuario sin empresa asignada', error: { code: 'COMPANY_REQUIRED', details: [] } }); return; } res.json({ success: true, message: 'Configuracion consultada', data: await listConfiguration(req.user.companyId, req.user.branchId) }); } catch (e) { next(e); } };
 export const setConfigurationController: RequestHandler = async (req, res, next) => { try { if (!req.user?.companyId) { res.status(403).json({ success: false, message: 'Usuario sin empresa asignada', error: { code: 'COMPANY_REQUIRED', details: [] } }); return; } const { value } = setConfigurationSchema.parse(req.body); const key = String(req.params.key).trim().toLowerCase(); if (!/^[a-z][a-z0-9.-]{1,119}$/.test(key)) throw new ZodError([]); res.json({ success: true, message: 'Configuracion guardada', data: await setConfiguration(req.user.companyId, req.user.branchId, key, value, req.user.sub) }); } catch (e) { handleError(e, res, next); } };
 export const listSessionsController: RequestHandler = async (req, res, next) => { try { res.json({ success: true, message: 'Sesiones consultadas', data: await listSessions(req.user!.sub) }); } catch (e) { next(e); } };
+export const revokeCurrentSessionController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user?.sid) {
+      res.status(401).json({ success: false, message: 'Sesion invalida', error: { code: 'SESSION_REQUIRED', details: [] } });
+      return;
+    }
+    await revokeSession(req.user.sid, req.user.sub);
+    res.json({ success: true, message: 'Sesion revocada', data: { revoked: true } });
+  } catch (e) {
+    next(e);
+  }
+};
 export const revokeSessionsController: RequestHandler = async (req, res, next) => { try { await revokeAllSessions(req.user!.sub); res.json({ success: true, message: 'Sesiones revocadas', data: { revoked: true } }); } catch (e) { next(e); } };
 export const listAuditController: RequestHandler = async (req, res, next) => { try { if (!req.user?.companyId || !req.user.branchId) { res.status(403).json({ success: false, message: 'Usuario sin empresa o sucursal asignada', error: { code: 'TENANT_REQUIRED', details: [] } }); return; } res.json({ success: true, message: 'Auditoria consultada', data: await listAuditEvents(req.user.companyId, req.user.branchId) }); } catch (e) { next(e); } };

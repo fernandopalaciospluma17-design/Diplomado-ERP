@@ -1,9 +1,11 @@
 package com.nodara.erp.navigation
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
@@ -35,6 +37,7 @@ fun NavGraph(
     val dashboardViewModel = remember { DashboardViewModel(repository) }
     val loginViewModel = remember { LoginViewModel(repository, sessionManager) }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val dashboardState by dashboardViewModel.uiState.collectAsState()
 
     val currentUser = if (dashboardState is com.nodara.erp.ui.dashboard.DashboardUiState.Success) {
@@ -110,9 +113,19 @@ fun NavGraph(
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
                         onClick = {
-                            sessionManager.clearSession()
-                            navController.navigate(Screen.Login.route) {
-                                popUpTo(0) { inclusive = true }
+                            scope.launch {
+                                val revocation = repository.revokeCurrentSession()
+                                sessionManager.clearSession()
+                                navController.navigate(Screen.Login.route) {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                                if (revocation.isFailure) {
+                                    Toast.makeText(
+                                        context,
+                                        "Sesión local cerrada; no se pudo confirmar la revocación remota.",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
                             }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),

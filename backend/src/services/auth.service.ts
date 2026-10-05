@@ -92,7 +92,7 @@ export async function getCurrentUser(userId: string) {
 
   if (user.roleId) {
     if (Types.ObjectId.isValid(user.roleId)) {
-      const roleDoc = await RoleModel.findOne({ _id: user.roleId, status: 'ACTIVE' }).populate('permissionIds', 'code');
+      const roleDoc = await RoleModel.findOne({ _id: user.roleId, companyId: user.companyId, status: 'ACTIVE' }).populate('permissionIds', 'code');
       if (roleDoc) {
         roleInfo = { id: roleDoc.id, code: roleDoc.code, name: roleDoc.name };
         permissions = roleDoc.permissionIds.map((p) => (p as unknown as { code: string }).code);
