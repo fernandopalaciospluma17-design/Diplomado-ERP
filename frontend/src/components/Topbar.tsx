@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import type { CurrentUser } from '../types';
+import type { CurrentUser, UserBranchInfo } from '../types';
 import { colors, radii, spacing, typography } from '../design/tokens';
 
 type TopbarProps = {
@@ -7,6 +8,8 @@ type TopbarProps = {
   apiStatus: string;
   onRefresh: () => void;
   onLogout: () => void;
+  onChangeBranch?: (branch: UserBranchInfo) => void;
+  isChangingBranch?: boolean;
   onOpenNotifications?: () => void;
   unreadNotificationsCount?: number;
 };
@@ -16,11 +19,15 @@ export function Topbar({
   apiStatus,
   onRefresh,
   onLogout,
+  onChangeBranch,
+  isChangingBranch = false,
   onOpenNotifications,
   unreadNotificationsCount = 0,
 }: TopbarProps) {
   const branchName = user.branch?.name ?? user.branchId ?? 'Sucursal Principal';
   const companyName = user.company?.name ?? 'Nodara ERP';
+  const [branchMenuOpen, setBranchMenuOpen] = useState(false);
+  const availableBranches = user.availableBranches ?? [];
 
   return (
     <View style={styles.topbar}>
@@ -30,10 +37,37 @@ export function Topbar({
       </View>
 
       <View style={styles.actions}>
-        <View style={styles.branchChip}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Sucursal activa: ${branchName}. Cambiar sucursal`}
+          disabled={!onChangeBranch || availableBranches.length < 2 || isChangingBranch}
+          onPress={() => setBranchMenuOpen((open) => !open)}
+          style={[styles.branchChip, (!onChangeBranch || availableBranches.length < 2) && styles.branchChipStatic]}
+        >
           <Text style={styles.branchIcon}>🏢</Text>
-          <Text style={styles.branchText}>{branchName}</Text>
-        </View>
+          <Text style={styles.branchText}>{isChangingBranch ? 'Cambiando…' : branchName}</Text>
+          {availableBranches.length > 1 ? <Text style={styles.branchChevron}>⌄</Text> : null}
+          {branchMenuOpen && onChangeBranch ? (
+            <View style={styles.branchMenu}>
+              {availableBranches.map((branch) => (
+                <Pressable
+                  accessibilityRole="button"
+                  key={branch.id}
+                  onPress={() => {
+                    setBranchMenuOpen(false);
+                    if (branch.id !== user.branchId) onChangeBranch(branch);
+                  }}
+                  style={[styles.branchMenuItem, branch.id === user.branchId && styles.branchMenuItemActive]}
+                >
+                  <Text style={[styles.branchMenuText, branch.id === user.branchId && styles.branchMenuTextActive]}>
+                    {branch.name}
+                  </Text>
+                  <Text style={styles.branchMenuCode}>{branch.code}</Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
+        </Pressable>
 
         <View style={styles.search}>
           <Text style={styles.searchIcon}>/</Text>
@@ -99,9 +133,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     height: 40,
     gap: 6,
+    position: 'relative',
   },
+  branchChipStatic: { opacity: 1 },
   branchIcon: { fontSize: 13 },
   branchText: { color: colors.slate, fontSize: 12, fontWeight: '700' },
+  branchChevron: { color: colors.muted, fontSize: 14, fontWeight: '800' },
+  branchMenu: { backgroundColor: colors.paper, borderColor: colors.line, borderRadius: radii.sm, borderWidth: 1, elevation: 12, minWidth: 210, padding: 5, position: 'absolute', right: 0, top: 46, zIndex: 20 },
+  branchMenuItem: { borderRadius: radii.sm, paddingHorizontal: 10, paddingVertical: 9 },
+  branchMenuItemActive: { backgroundColor: colors.mist },
+  branchMenuText: { color: colors.ink, fontSize: 12, fontWeight: '700' },
+  branchMenuTextActive: { color: colors.moss },
+  branchMenuCode: { color: colors.muted, fontSize: 10, marginTop: 2 },
   search: {
     alignItems: 'center',
     backgroundColor: colors.paper,

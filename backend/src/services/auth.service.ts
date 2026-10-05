@@ -12,7 +12,7 @@ import { env } from '../config/env.js';
 import type { CreateUserInput, LoginInput } from '../validators/auth.validators.js';
 
 export class AuthError extends Error {
-  constructor(public readonly code: 'INVALID_CREDENTIALS' | 'INACTIVE_USER' | 'USER_NOT_FOUND' | 'USER_EXISTS' | 'INVALID_ROLE' | 'TENANT_NOT_CONFIGURED' | 'INVALID_CONFIRMATION_TOKEN' | 'USER_NOT_PENDING_CONFIRMATION') {
+  constructor(public readonly code: 'INVALID_CREDENTIALS' | 'INACTIVE_USER' | 'USER_NOT_FOUND' | 'USER_EXISTS' | 'INVALID_ROLE' | 'TENANT_NOT_CONFIGURED' | 'INVALID_CONFIRMATION_TOKEN' | 'USER_NOT_PENDING_CONFIRMATION' | 'BRANCH_NOT_AVAILABLE' | 'SESSION_INVALID') {
     super('Credenciales invalidas');
   }
 }
@@ -39,14 +39,14 @@ export async function login(input: LoginInput, ip?: string, userAgent?: string) 
   await user.save();
 
   const session = await SessionModel.create({ userId: user._id, companyId: user.companyId, branchId: user.branchId, expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), ip, userAgent });
-  const currentUserData = await getCurrentUser(user.id);
+  const currentUserData = await getCurrentUser(user.id, session.branchId?.toString());
   return {
     accessToken: signAccessToken({ sub: user.id, roleId: user.roleId, sid: session.id, companyId: user.companyId?.toString(), branchId: user.branchId?.toString() }),
     user: currentUserData
   };
 }
 
-export async function getCurrentUser(userId: string) {
+export async function getCurrentUser(userId: string, activeBranchId?: string) {
   const user = await UserModel.findById(userId);
   if (!user) {
     throw new AuthError('USER_NOT_FOUND');
@@ -78,8 +78,9 @@ export async function getCurrentUser(userId: string) {
     }));
   }
 
-  if (user.branchId) {
-    const branchDoc = await BranchModel.findById(user.branchId);
+  const selectedBranchId = activeBranchId ?? user.branchId?.toString();
+  if (user.companyId && selectedBranchId) {
+    const branchDoc = await BranchModel.findOne({ _id: selectedBranchId, companyId: user.companyId, status: 'ACTIVE' });
     if (branchDoc) {
       branch = {
         id: branchDoc.id,
@@ -120,6 +121,22 @@ export async function getCurrentUser(userId: string) {
 
 export async function revokeSession(sessionId: string, userId: string) {
   await SessionModel.updateOne({ _id: sessionId, userId, revokedAt: null }, { $set: { revokedAt: new Date() } });
+}
+
+export async function switchSessionBranch(userId: string, sessionId: string, companyId: string, branchId: string) {
+  if (!Types.ObjectId.isValid(branchId) || !Types.ObjectId.isValid(sessionId)) {
+    throw new AuthError('BRANCH_NOT_AVAILABLE');
+  }
+  const branch = await BranchModel.findOne({ _id: branchId, companyId, status: 'ACTIVE' });
+  if (!branch) throw new AuthError('BRANCH_NOT_AVAILABLE');
+
+  const result = await SessionModel.updateOne(
+    { _id: sessionId, userId, companyId, revokedAt: null, expiresAt: { $gt: new Date() } },
+    { $set: { branchId: branch._id } }
+  );
+  if (result.matchedCount !== 1) throw new AuthError('SESSION_INVALID');
+
+  return { branchId: branch.id, branch: { id: branch.id, code: branch.code, name: branch.name, address: branch.address } };
 }
 
 export async function listUsers(companyId: string) {
@@ -174,10 +191,13 @@ export async function createUser(input: CreateUserInput, companyId: string, bran
 }
 
 export async function resendAccountInvitation(userId: string, companyId: string) {
-  const user = await UserModel.findOne({ _id: userId, companyId });
+  const user = await UserModel.findOne({ _id: userId, companyId })
+    .select('+emailConfirmationTokenHash +emailConfirmationExpiresAt');
   if (!user) throw new AuthError('USER_NOT_FOUND');
   if (user.status !== 'PENDING_CONFIRMATION') throw new AuthError('USER_NOT_PENDING_CONFIRMATION');
 
+  const previousTokenHash = user.emailConfirmationTokenHash;
+  const previousExpiresAt = user.emailConfirmationExpiresAt;
   const { token, tokenHash } = createEmailConfirmationToken();
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
   const updated = await UserModel.updateOne(
@@ -186,7 +206,18 @@ export async function resendAccountInvitation(userId: string, companyId: string)
   );
   if (updated.matchedCount !== 1) throw new AuthError('USER_NOT_PENDING_CONFIRMATION');
 
-  await sendInvitation(user, token);
+  try {
+    await sendInvitation(user, token);
+  } catch (error) {
+    await UserModel.updateOne(
+      { _id: user._id, companyId, status: 'PENDING_CONFIRMATION', emailConfirmationTokenHash: tokenHash },
+      previousTokenHash && previousExpiresAt
+        ? { $set: { emailConfirmationTokenHash: previousTokenHash, emailConfirmationExpiresAt: previousExpiresAt } }
+        : { $unset: { emailConfirmationTokenHash: 1, emailConfirmationExpiresAt: 1 } }
+    );
+    if (error instanceof EmailDeliveryError) throw error;
+    throw new EmailDeliveryError('No se pudo reenviar la invitación por correo', { cause: error });
+  }
   return { id: user.id, email: user.email, status: user.status };
 }
 

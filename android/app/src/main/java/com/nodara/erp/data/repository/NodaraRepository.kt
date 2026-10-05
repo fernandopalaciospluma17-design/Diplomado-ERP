@@ -13,6 +13,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
+class SessionExpiredException : Exception("La sesión expiró. Inicia sesión nuevamente.")
+
 class NodaraRepository(private val sessionManager: SessionManager) {
     private val gson = GsonBuilder()
         .registerTypeHierarchyAdapter(List::class.java, FlexibleListDeserializer())
@@ -71,13 +73,31 @@ class NodaraRepository(private val sessionManager: SessionManager) {
         }
     }
 
-    suspend fun revokeCurrentSession(): Result<Unit> {
+    suspend fun revokeCurrentSession(token: String): Result<Unit> {
         return try {
-            val response = api.revokeCurrentSession()
+            val response = api.revokeCurrentSession("Bearer $token")
             if (response.isSuccessful || response.code() == 401) {
                 Result.success(Unit)
             } else {
                 Result.failure(Exception("No se pudo confirmar la revocación de la sesión remota"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun switchCurrentBranch(branchId: String): Result<Unit> {
+        return try {
+            val response = api.switchCurrentSessionBranch(mapOf("branchId" to branchId))
+            if (response.isSuccessful && response.body()?.success == true) {
+                Result.success(Unit)
+            } else if (response.code() == 401) {
+                sessionManager.clearSession()
+                Result.failure(SessionExpiredException())
+            } else {
+                val message = parseErrorMessage(response.errorBody()?.string())
+                    ?: "No se pudo cambiar la sucursal."
+                Result.failure(Exception(message))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -93,6 +113,7 @@ class NodaraRepository(private val sessionManager: SessionManager) {
                 if (res.code() == 401) sessionManager.clearSession()
                 Result.failure(Exception("No se pudo obtener el usuario"))
             }
+
         } catch (e: Exception) {
             Result.failure(e)
         }

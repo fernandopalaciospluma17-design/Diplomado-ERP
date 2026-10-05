@@ -26,7 +26,7 @@ export const loginController: RequestHandler = async (request, response, next) =
 
 export const currentUserController: RequestHandler = async (request, response, next) => {
   try {
-    const data = await getCurrentUser(request.user!.sub);
+    const data = await getCurrentUser(request.user!.sub, request.user!.branchId);
     response.status(200).json({ success: true, message: 'Usuario autenticado', data });
   } catch (error) {
     if (error instanceof AuthError && error.code === 'USER_NOT_FOUND') {

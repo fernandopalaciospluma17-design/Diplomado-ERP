@@ -108,6 +108,18 @@ describe('GET /api/v1/health', () => {
     expect(response.body).toMatchObject({ success: false, error: { code: 'UNAUTHORIZED' } });
   });
 
+  it('requires authentication to revoke the current session or change its branch', async () => {
+    const revokeResponse = await request(app).delete('/api/v1/core/sessions/current');
+    const branchResponse = await request(app)
+      .patch('/api/v1/core/sessions/current/branch')
+      .send({ branchId: '507f1f77bcf86cd799439011' });
+
+    expect(revokeResponse.status).toBe(401);
+    expect(revokeResponse.body.error.code).toBe('UNAUTHORIZED');
+    expect(branchResponse.status).toBe(401);
+    expect(branchResponse.body.error.code).toBe('UNAUTHORIZED');
+  });
+
   it('requires a persistent session before inventory changes', async () => {
     const token = signAccessToken({ sub: 'user-id', roleId: 'USER' });
     const response = await request(app)

@@ -16,7 +16,10 @@ interface NodaraApiService {
     suspend fun getCurrentUser(): Response<ApiEnvelope<CurrentUser>>
 
     @DELETE("core/sessions/current")
-    suspend fun revokeCurrentSession(): Response<ApiEnvelope<Map<String, Boolean>>>
+    suspend fun revokeCurrentSession(@Header("Authorization") authorization: String): Response<ApiEnvelope<Map<String, Boolean>>>
+
+    @PATCH("core/sessions/current/branch")
+    suspend fun switchCurrentSessionBranch(@Body request: Map<String, String>): Response<ApiEnvelope<Map<String, Any>>>
 
     @GET("reports/summary")
     suspend fun getSummary(

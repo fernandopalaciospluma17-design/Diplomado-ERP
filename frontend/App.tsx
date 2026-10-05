@@ -7,7 +7,7 @@ import { ApiError, apiRequest, clearSessionToken, readSessionToken, subscribeToU
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { ConfirmAccountScreen } from './src/screens/ConfirmAccountScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
-import type { CurrentUser, DashboardSummary } from './src/types';
+import type { CurrentUser, DashboardSummary, UserBranchInfo } from './src/types';
 
 const modules: NodaraModule[] = [
   { label: 'Resumen', shortLabel: 'IN', endpoint: null },
@@ -36,22 +36,31 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [isBooting, setIsBooting] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isChangingBranch, setIsChangingBranch] = useState(false);
 
   const logout = async (revokeRemote = true) => {
-    let revocationFailed = false;
-    if (revokeRemote && token) {
-      try {
-        await apiRequest('/api/v1/core/sessions/current', { method: 'DELETE' }, token, false);
-      } catch {
-        revocationFailed = true;
-      }
-    }
+    const sessionToken = token;
+    const revocation = revokeRemote && sessionToken
+      ? apiRequest('/api/v1/core/sessions/current', { method: 'DELETE' }, sessionToken, false)
+        .then(() => false, () => true)
+      : Promise.resolve(false);
     await clearSessionToken();
     setToken(null);
     setUser(null);
     setSummary(null);
     setSelectedModule('Resumen');
-    setError(revocationFailed ? 'Se cerró la sesión en este dispositivo, pero no se pudo confirmar la revocación remota.' : null);
+    setError(null);
+    if (revokeRemote && sessionToken) {
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+      const timedOut = new Promise<boolean>((resolve) => {
+        timeoutId = setTimeout(() => resolve(true), 5000);
+      });
+      const revocationFailed = await Promise.race([revocation, timedOut]);
+      if (timeoutId) clearTimeout(timeoutId);
+      if (revocationFailed) {
+        setError('Se cerró la sesión en este dispositivo, pero no se pudo confirmar la revocación remota.');
+      }
+    }
   };
 
   const checkApi = async () => {
@@ -138,6 +147,27 @@ export default function App() {
     }
   };
 
+  const changeBranch = async (branch: UserBranchInfo) => {
+    if (!token || !user || branch.id === user.branchId) return;
+    setIsChangingBranch(true);
+    setError(null);
+    try {
+      await apiRequest('/api/v1/core/sessions/current/branch', {
+        method: 'PATCH',
+        body: JSON.stringify({ branchId: branch.id }),
+      }, token);
+      await loadCurrentUser(token);
+    } catch (branchError) {
+      if (branchError instanceof ApiError && branchError.status === 401) {
+        await logout(false);
+      } else {
+        setError(branchError instanceof ApiError ? branchError.message : 'No se pudo cambiar la sucursal activa.');
+      }
+    } finally {
+      setIsChangingBranch(false);
+    }
+  };
+
   const handleSelectModule = (module: NodaraModule) => {
     setSelectedModule(module.label);
     setError(null);
@@ -221,7 +251,9 @@ export default function App() {
         <DashboardScreen
           apiStatus={apiStatus}
           error={error}
+          isChangingBranch={isChangingBranch}
           modules={visibleModules}
+          onChangeBranch={changeBranch}
           onError={(msg) => setError(msg)}
           onLogout={() => void logout()}
           onRefresh={() => void refresh()}

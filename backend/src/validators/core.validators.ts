@@ -28,6 +28,9 @@ export const createRoleSchema = z.object({
 
 export const updateRoleSchema = createRoleSchema.partial().refine((input) => Object.keys(input).length > 0);
 export const setConfigurationSchema = z.object({ value: z.unknown().refine((value) => value !== undefined, 'value es obligatorio') });
+export const switchBranchSchema = z.object({
+  branchId: z.string().regex(/^[a-f\d]{24}$/i)
+});
 export type CreateBranchInput = z.infer<typeof createBranchSchema>;
 export type CreateRoleInput = z.infer<typeof createRoleSchema>;
 export type UpdateCompanyInput = z.infer<typeof updateCompanySchema>;

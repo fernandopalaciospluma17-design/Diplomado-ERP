@@ -12,7 +12,7 @@ import { CrmScreen } from './modules/CrmScreen';
 import { PosScreen } from './modules/PosScreen';
 import { HrScreen } from './modules/HrScreen';
 import { UsersScreen } from './modules/UsersScreen';
-import type { CurrentUser, DashboardSummary, NotificationItem } from '../types';
+import type { CurrentUser, DashboardSummary, NotificationItem, UserBranchInfo } from '../types';
 import { colors, radii, spacing, typography } from '../design/tokens';
 
 type Props = {
@@ -26,6 +26,8 @@ type Props = {
   onSelectModule: (module: NodaraModule) => void;
   onRefresh: () => void;
   onLogout: () => void;
+  onChangeBranch: (branch: UserBranchInfo) => void;
+  isChangingBranch: boolean;
   onError: (msg: string) => void;
 };
 
@@ -44,6 +46,8 @@ export function DashboardScreen({
   onSelectModule,
   onRefresh,
   onLogout,
+  onChangeBranch,
+  isChangingBranch,
   onError,
 }: Props) {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -105,6 +109,8 @@ export function DashboardScreen({
     <View style={styles.main}>
       <Topbar
         apiStatus={apiStatus}
+        isChangingBranch={isChangingBranch}
+        onChangeBranch={onChangeBranch}
         onLogout={onLogout}
         onOpenNotifications={() => {
           setIsNotifOpen(true);

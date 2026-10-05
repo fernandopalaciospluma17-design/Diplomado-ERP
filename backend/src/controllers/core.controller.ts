@@ -1,8 +1,8 @@
 import type { RequestHandler } from 'express';
 import { ZodError } from 'zod';
 import { CoreError, createBranch, createRole, listAuditEvents, listBranches, listCompany, listConfiguration, listPermissions, listRoles, listSessions, revokeAllSessions, setConfiguration, updateBranch, updateCompany, updateRole } from '../services/core.service.js';
-import { revokeSession } from '../services/auth.service.js';
-import { createBranchSchema, createRoleSchema, setConfigurationSchema, updateBranchSchema, updateCompanySchema, updateRoleSchema } from '../validators/core.validators.js';
+import { AuthError, revokeSession, switchSessionBranch } from '../services/auth.service.js';
+import { createBranchSchema, createRoleSchema, setConfigurationSchema, switchBranchSchema, updateBranchSchema, updateCompanySchema, updateRoleSchema } from '../validators/core.validators.js';
 import { EmailDeliveryError } from '../services/email.service.js';
 import { logger } from '../utils/logger.js';
 
@@ -59,6 +59,31 @@ export const revokeCurrentSessionController: RequestHandler = async (req, res, n
     res.json({ success: true, message: 'Sesion revocada', data: { revoked: true } });
   } catch (e) {
     next(e);
+  }
+};
+export const switchCurrentSessionBranchController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user?.sid || !req.user.companyId) {
+      res.status(403).json({ success: false, message: 'Usuario sin empresa o sesión válida', error: { code: 'TENANT_REQUIRED', details: [] } });
+      return;
+    }
+    const { branchId } = switchBranchSchema.parse(req.body);
+    const data = await switchSessionBranch(req.user.sub, req.user.sid, req.user.companyId, branchId);
+    res.json({ success: true, message: 'Sucursal activa actualizada', data });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      res.status(422).json({ success: false, message: 'Datos invalidos', error: { code: 'VALIDATION_ERROR', details: error.issues } });
+      return;
+    }
+    if (error instanceof AuthError && error.code === 'BRANCH_NOT_AVAILABLE') {
+      res.status(403).json({ success: false, message: 'La sucursal solicitada no está disponible para esta empresa.', error: { code: error.code, details: [] } });
+      return;
+    }
+    if (error instanceof AuthError && error.code === 'SESSION_INVALID') {
+      res.status(401).json({ success: false, message: 'La sesión expiró o fue revocada.', error: { code: error.code, details: [] } });
+      return;
+    }
+    next(error);
   }
 };
 export const revokeSessionsController: RequestHandler = async (req, res, next) => { try { await revokeAllSessions(req.user!.sub); res.json({ success: true, message: 'Sesiones revocadas', data: { revoked: true } }); } catch (e) { next(e); } };

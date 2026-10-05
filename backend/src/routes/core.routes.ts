@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createBranchController, createRoleController, listAuditController, listBranchesController, listCompaniesController, listConfigurationController, listPermissionsController, listRolesController, listSessionsController, revokeCurrentSessionController, revokeSessionsController, setConfigurationController, updateBranchController, updateCompanyController, updateRoleController } from '../controllers/core.controller.js';
+import { createBranchController, createRoleController, listAuditController, listBranchesController, listCompaniesController, listConfigurationController, listPermissionsController, listRolesController, listSessionsController, revokeCurrentSessionController, revokeSessionsController, setConfigurationController, switchCurrentSessionBranchController, updateBranchController, updateCompanyController, updateRoleController } from '../controllers/core.controller.js';
 import { requireAuth, requirePermission } from '../middlewares/auth.js';
 import { auditAction } from '../middlewares/audit.js';
 
@@ -18,5 +18,6 @@ coreRouter.get('/configuration', requirePermission('platform.configuration.read'
 coreRouter.put('/configuration/:key', requirePermission('platform.configuration.update'), auditAction('CONFIGURATION_UPDATE'), setConfigurationController);
 coreRouter.get('/sessions', listSessionsController);
 coreRouter.delete('/sessions/current', auditAction('SESSION_REVOKE'), revokeCurrentSessionController);
+coreRouter.patch('/sessions/current/branch', auditAction('SESSION_BRANCH_SWITCH'), switchCurrentSessionBranchController);
 coreRouter.delete('/sessions', auditAction('SESSION_REVOKE'), revokeSessionsController);
 coreRouter.get('/audit', requirePermission('platform.audit.read'), listAuditController);

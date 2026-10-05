@@ -20,6 +20,7 @@ import com.nodara.erp.ui.login.LoginScreen
 import com.nodara.erp.ui.login.LoginViewModel
 import com.nodara.erp.ui.modules.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 @Composable
 fun NavGraph(
@@ -50,7 +51,27 @@ fun NavGraph(
                 NodaraTopBar(
                     user = currentUser,
                     apiStatus = "API Operativa",
-                    onRefresh = { dashboardViewModel.loadData() }
+                    onRefresh = { dashboardViewModel.loadData() },
+                    onChangeBranch = { branch ->
+                        scope.launch {
+                            val result = repository.switchCurrentBranch(branch.id)
+                            if (result.isSuccess) {
+                                dashboardViewModel.loadData()
+                            } else {
+                                val failure = result.exceptionOrNull()
+                                if (failure is com.nodara.erp.data.repository.SessionExpiredException) {
+                                    navController.navigate(Screen.Login.route) {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
+                                Toast.makeText(
+                                    context,
+                                    failure?.message ?: "No se pudo cambiar la sucursal.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    }
                 )
             }
         },
@@ -113,13 +134,16 @@ fun NavGraph(
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
                         onClick = {
-                            scope.launch {
-                                val revocation = repository.revokeCurrentSession()
-                                sessionManager.clearSession()
-                                navController.navigate(Screen.Login.route) {
-                                    popUpTo(0) { inclusive = true }
+                            val token = sessionManager.getToken()
+                            sessionManager.clearSession()
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                            if (!token.isNullOrBlank()) scope.launch {
+                                val revocation = withTimeoutOrNull(5_000) {
+                                    repository.revokeCurrentSession(token)
                                 }
-                                if (revocation.isFailure) {
+                                if (revocation == null || revocation.isFailure) {
                                     Toast.makeText(
                                         context,
                                         "Sesión local cerrada; no se pudo confirmar la revocación remota.",

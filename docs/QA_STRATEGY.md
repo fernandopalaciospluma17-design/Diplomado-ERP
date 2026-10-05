@@ -2,7 +2,19 @@
 
 ## Evidencia de revisión
 
-Once archivos Vitest con 46 pruebas: utilidades de contraseña/JWT, health/API, validadores Core/compras/ventas/contabilidad/CRM/POS, middleware RBAC y trazabilidad de inventario. Typecheck y pruebas pasaron en la revisión local; repetir build/typecheck/tests al retomar. MongoDB Atlas configurado en el `.env` de la raíz agotó el tiempo de conexión en dos intentos; tampoco está disponible Mongo local ni Docker. Por ello no se ejecutó integración de transacciones en replica set. Tampoco hay E2E ni pruebas frontend.
+Las pruebas locales cubren utilidades de autenticación, contratos API, validadores, middleware RBAC, invitaciones Resend simuladas, revocación y cambio de sucursal. `tests/integration/auth-workflow.test.ts` implementa un E2E de API contra Mongo desechable, con correo simulado; solo se ejecuta cuando `RUN_AUTH_E2E=1` y requiere `MONGODB_TEST_URI` apuntando a una base cuyo nombre contenga `test`, `integration`, `disposable` o `gate`. No usa `MONGODB_URI` ni la base de producción.
+
+Para ejecutarlo desde PowerShell contra un replica set local desechable, inicia MongoDB y usa una base con nombre reservado para pruebas:
+
+```powershell
+$env:RUN_AUTH_E2E = '1'
+$env:MONGODB_TEST_URI = 'mongodb://127.0.0.1:27018/erp_integration?replicaSet=rs0&directConnection=true'
+npm.cmd --prefix backend exec vitest run tests/integration/auth-workflow.test.ts
+Remove-Item Env:RUN_AUTH_E2E
+Remove-Item Env:MONGODB_TEST_URI
+```
+
+No apuntes `MONGODB_TEST_URI` a producción ni a una base compartida con datos. El gate crea y elimina documentos de tenant de prueba. Las pruebas E2E de navegador/Android y el flujo de correo real aún requieren credenciales y dispositivos/cuentas de prueba.
 
 ## Capas objetivo
 

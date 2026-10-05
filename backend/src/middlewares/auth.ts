@@ -29,8 +29,10 @@ export const requireAuth: RequestHandler = async (request, response, next) => {
     const session = await SessionModel.findOne({ _id: payload.sid, userId: payload.sub, revokedAt: null, expiresAt: { $gt: new Date() } });
     const user = await UserModel.findById(payload.sub);
     const companyActive = user?.companyId ? Boolean(await CompanyModel.exists({ _id: user.companyId, status: 'ACTIVE' })) : false;
-    const branchActive = user?.companyId && user.branchId ? Boolean(await BranchModel.exists({ _id: user.branchId, companyId: user.companyId, status: 'ACTIVE' })) : false;
-    if (!session || !user || user.status !== 'ACTIVE' || !companyActive || !branchActive || String(session.companyId ?? '') !== String(user.companyId ?? '') || String(session.branchId ?? '') !== String(user.branchId ?? '')) {
+    const branchActive = user?.companyId && session?.branchId
+      ? Boolean(await BranchModel.exists({ _id: session.branchId, companyId: user.companyId, status: 'ACTIVE' }))
+      : false;
+    if (!session || !user || user.status !== 'ACTIVE' || !companyActive || !branchActive || String(session.companyId ?? '') !== String(user.companyId ?? '')) {
       response.status(401).json({ success: false, message: 'Sesion revocada o expirada', error: { code: 'SESSION_INVALID', details: [] } });
       return;
     }
@@ -43,7 +45,7 @@ export const requireAuth: RequestHandler = async (request, response, next) => {
       roleId: user.roleId,
       sid: session.id,
       companyId: user.companyId?.toString(),
-      branchId: user.branchId?.toString(),
+      branchId: session.branchId?.toString(),
       permissions
     };
     next();

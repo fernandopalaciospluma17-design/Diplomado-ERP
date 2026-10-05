@@ -7,6 +7,8 @@
 2. Ejecutar `npm.cmd run audit:dependencies`; resolver vulnerabilidades de severidad alta o crítica y planificar las moderadas del toolchain antes de producción.
 3. Configurar `NODE_ENV=production`, `JWT_SECRET` con al menos 32 caracteres, `CORS_ORIGIN` con el origen público real y `MONGODB_URI` con replica set o cluster compatible.
 4. Ejecutar el migrador en dry-run; aplicar solo después de backup restaurable y aprobación operacional.
+5. Revisar [`RESEND_PRODUCTION.md`](./RESEND_PRODUCTION.md) para configurar dominio y correo de invitación.
+6. Desplegar el backend antes de publicar clientes que llamen nuevas rutas; comprobar health/readiness y después desplegar web y Android.
 
 ## Gate MongoDB
 
@@ -31,6 +33,7 @@ El gate debe demostrar commit y rollback. Si el puerto `27017` ya está ocupado,
 - Nunca registrar `MONGODB_URI`, JWT, contraseñas ni cookies.
 - Mantener `.env` fuera de commits y bundles frontend.
 - Ensayar backup y restore en una base desechable antes de una migración.
+- Usar snapshots/PITR de Atlas si están disponibles y documentar retención, responsables y RPO/RTO. Practicar una restauración a un cluster/base aislada; nunca restaurar encima de producción durante una prueba.
 
 ## Despliegue y rollback
 

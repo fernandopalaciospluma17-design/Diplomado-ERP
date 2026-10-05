@@ -17,6 +17,7 @@ Base: `/api/v1`. Respuestas: `{ success, message, data }`; errores: `{ success:f
 | POST `/auth/confirm-account` | Publico | Confirma la cuenta invitada y establece la contraseña |
 | GET `/core/roles` | `platform.roles.read` | Lista roles de la empresa actual |
 | DELETE `/core/sessions/current` | Sesion valida | Revoca solo la sesión actual |
+| PATCH `/core/sessions/current/branch` | Sesion valida | Cambia la sucursal de la sesión si pertenece a la empresa del usuario |
 | GET `/catalogs/:kind` | `master-data.catalogs.read` | Lista catalogo (6 kinds) |
 | POST `/catalogs/:kind` | `master-data.catalogs.create` | Alta catalogo |
 | PATCH `/catalogs/:kind/:code` | `master-data.catalogs.update` | Actualiza catalogo |

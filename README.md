@@ -43,6 +43,7 @@ API: `http://localhost:3000/api/v1`; health check: `/api/v1/health` (readiness d
 - Roadmap: [`docs/ERP_ROADMAP.md`](docs/ERP_ROADMAP.md)
 - Migracion Core: [`docs/PHASE1_MIGRATION.md`](docs/PHASE1_MIGRATION.md)
 - Datos maestros: [`docs/MASTER_DATA.md`](docs/MASTER_DATA.md)
+- Invitaciones por correo en producción: [`docs/RESEND_PRODUCTION.md`](docs/RESEND_PRODUCTION.md)
 - Inventario: [`docs/INVENTORY.md`](docs/INVENTORY.md)
 - Compras: [`docs/PURCHASES.md`](docs/PURCHASES.md)
 - Base de datos, API, RBAC, reglas, QA y trazabilidad: archivos bajo `docs/`.
