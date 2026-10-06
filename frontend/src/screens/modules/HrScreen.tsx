@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
@@ -59,6 +59,7 @@ export function HrScreen({ token, onError }: { token: string; onError: (msg: str
             lastName: lastName.trim(),
             department: department.trim() || undefined,
             position: position.trim() || undefined,
+            hiredAt: new Date().toISOString(),
             status: 'ACTIVE',
           }),
         },
@@ -141,3 +142,4 @@ const styles = StyleSheet.create({
   nameText: { color: colors.ink, fontWeight: '700' },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: spacing.md },
 });
+

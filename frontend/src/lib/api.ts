@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+﻿import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
@@ -50,10 +50,23 @@ export function subscribeToUnauthorized(handler: () => void) {
   };
 }
 
+function makeIdempotencyKey() {
+  const randomPart = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  return `erp-${randomPart}`;
+}
+
 export async function apiRequest<T>(path: string, options: RequestInit = {}, token?: string, notifyUnauthorized = true): Promise<T> {
   const headers = new Headers(options.headers);
+  const method = (options.method ?? 'GET').toUpperCase();
+
   if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
-  if (token) headers.set('Authorization', `Bearer ${token}`);
+  if (method !== 'GET' && method !== 'HEAD' && !headers.has('idempotency-key')) {
+    headers.set('idempotency-key', makeIdempotencyKey());
+  }
+  if (token) headers.set('Authorization', 'Bearer ' + token);
+
   const response = await fetch(`${API_URL}${path}`, { ...options, headers });
   const payload = await response.json().catch(() => null) as ApiEnvelope<T> | null;
   if (!response.ok || !payload?.success) {
@@ -87,3 +100,4 @@ export async function clearSessionToken() {
   }
   await SecureStore.deleteItemAsync(STORAGE_KEY);
 }
+
